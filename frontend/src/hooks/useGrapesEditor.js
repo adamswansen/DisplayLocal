@@ -33,7 +33,7 @@
     * @param {number} targetHeight - Canvas height
     * @returns {Object} Position object with x, y coordinates
     */
-   const calculateBlockPosition = (editor, targetWidth, targetHeight) => {
+const calculateBlockPosition = (editor, targetWidth, targetHeight) => {
      const wrapper = editor.getWrapper();
      const existingComponents = wrapper.components();
      
@@ -55,8 +55,81 @@
        y += offsetY;
      }
      
-     return { x, y };
-   };
+    return { x, y };
+  };
+
+  /**
+   * Create and configure a component on the canvas
+   * @param {Object} block - Block definition from the BlockManager
+   * @param {Object} editor - GrapesJS editor instance
+   * @param {number} targetWidth - Canvas width
+   * @param {number} targetHeight - Canvas height
+   * @returns {Object} The created component
+   */
+  const createCanvasComponent = (block, editor, targetWidth, targetHeight) => {
+    const position = calculateBlockPosition(editor, targetWidth, targetHeight);
+
+    // Check if this is an image block
+    const isImageBlock = block.get('category') === 'Images';
+    const imageUrl = block.get('attributes')?.['data-image-url'];
+
+    let componentConfig;
+
+    if (isImageBlock && imageUrl) {
+      // Create image component
+      componentConfig = {
+        type: 'image',
+        src: imageUrl,
+        alt: block.get('attributes')?.['data-image-filename'] || 'Image',
+        style: {
+          position: 'absolute',
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          cursor: 'move',
+          'user-select': 'none',
+          'max-width': '100%',
+          'height': 'auto'
+        },
+        attributes: block.get('attributes')
+      };
+    } else {
+      // Create regular text component
+      componentConfig = {
+        type: 'default',
+        content: block.get('content'),
+        style: {
+          position: 'absolute',
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          cursor: 'move',
+          'user-select': 'none'
+        },
+        attributes: block.get('attributes')
+      };
+    }
+
+    const wrapper = editor.getWrapper();
+    const component = wrapper.append(componentConfig)[0];
+
+    component.set({
+      draggable: true,
+      resizable: {
+        handles: ['tl', 'tr', 'bl', 'br', 'ml', 'mr', 'mt', 'mb'],
+        minWidth: 20,
+        minHeight: 20
+      }
+    });
+
+    component.addStyle({
+      position: 'absolute',
+      left: `${position.x}px`,
+      top: `${position.y}px`
+    });
+
+    editor.select(component);
+
+    return component;
+  };
 
    /**
     * Handle clicking on a block to add it to the canvas
@@ -65,76 +138,13 @@
     * @param {number} targetWidth - Canvas width
     * @param {number} targetHeight - Canvas height
     */
-   const handleBlockClick = (block, editor, targetWidth, targetHeight) => {
-     try {
-       const position = calculateBlockPosition(editor, targetWidth, targetHeight);
-       
-       // Check if this is an image block
-       const isImageBlock = block.get('category') === 'Images';
-       const imageUrl = block.get('attributes')?.['data-image-url'];
-       
-       let componentConfig;
-       
-       if (isImageBlock && imageUrl) {
-         // Create image component
-         componentConfig = {
-           type: 'image',
-           src: imageUrl,
-           alt: block.get('attributes')?.['data-image-filename'] || 'Image',
-           style: {
-             position: 'absolute',
-             left: `${position.x}px`,
-             top: `${position.y}px`,
-             cursor: 'move',
-             'user-select': 'none',
-             'max-width': '100%',
-             'height': 'auto'
-           },
-           attributes: block.get('attributes')
-         };
-       } else {
-         // Create regular text component
-         componentConfig = {
-           type: 'default',
-           content: block.get('content'),
-           style: {
-             position: 'absolute',
-             left: `${position.x}px`,
-             top: `${position.y}px`,
-             cursor: 'move',
-             'user-select': 'none'
-           },
-           attributes: block.get('attributes')
-         };
-       }
-       
-       // Try adding to wrapper instead of directly to editor
-       const wrapper = editor.getWrapper();
-       const component = wrapper.append(componentConfig)[0];
-       
-       // Configure the component for dragging and resizing
-       component.set({
-         draggable: true,
-         resizable: {
-           handles: ['tl', 'tr', 'bl', 'br', 'ml', 'mr', 'mt', 'mb'],
-           minWidth: 20,
-           minHeight: 20
-         }
-       });
-       
-       // Force update the position
-       component.addStyle({
-         position: 'absolute',
-         left: `${position.x}px`,
-         top: `${position.y}px`
-       });
-       
-       // Select the new component
-       editor.select(component);
-     } catch (error) {
-       console.error('Error adding component to canvas:', error);
-     }
-   };
+  const handleBlockClick = (block, editor, targetWidth, targetHeight) => {
+    try {
+      createCanvasComponent(block, editor, targetWidth, targetHeight);
+    } catch (error) {
+      console.error('Error adding component to canvas:', error);
+    }
+  };
 
    /**
     * Attach click listeners to existing block elements
@@ -173,78 +183,14 @@
            block = allBlocks.find(b => b.get('label') === blockText);
          }
          
-         if (block) {
-           // Use the same logic as handleBlockClick
-           const position = calculateBlockPosition(editor, targetWidth, targetHeight);
-           
-           try {
-             // Check if this is an image block
-             const isImageBlock = block.get('category') === 'Images';
-             const imageUrl = block.get('attributes')?.['data-image-url'];
-             
-             let componentConfig;
-             
-             if (isImageBlock && imageUrl) {
-               // Create image component
-               componentConfig = {
-                 type: 'image',
-                 src: imageUrl,
-                 alt: block.get('attributes')?.['data-image-filename'] || 'Image',
-                 style: {
-                   position: 'absolute',
-                   left: `${position.x}px`,
-                   top: `${position.y}px`,
-                   cursor: 'move',
-                   'user-select': 'none',
-                   'max-width': '100%',
-                   'height': 'auto'
-                 },
-                 attributes: block.get('attributes')
-               };
-             } else {
-               // Create regular text component
-               componentConfig = {
-                 type: 'default',
-                 content: block.get('content'),
-                 style: {
-                   position: 'absolute',
-                   left: `${position.x}px`,
-                   top: `${position.y}px`,
-                   cursor: 'move',
-                   'user-select': 'none'
-                 },
-                 attributes: block.get('attributes')
-               };
-             }
-             
-             // Try adding to wrapper instead of directly to editor
-             const wrapper = editor.getWrapper();
-             const component = wrapper.append(componentConfig)[0];
-             
-             // Configure the component for dragging and resizing
-             component.set({
-               draggable: true,
-               resizable: {
-                 handles: ['tl', 'tr', 'bl', 'br', 'ml', 'mr', 'mt', 'mb'],
-                 minWidth: 20,
-                 minHeight: 20
-               }
-             });
-             
-             // Force update the position
-             component.addStyle({
-               position: 'absolute',
-               left: `${position.x}px`,
-               top: `${position.y}px`
-             });
-             
-             // Select the new component
-             editor.select(component);
-           } catch (error) {
-             console.error('Error adding component to canvas:', error);
-           }
-         }
-       };
+        if (block) {
+          try {
+            createCanvasComponent(block, editor, targetWidth, targetHeight);
+          } catch (error) {
+            console.error('Error adding component to canvas:', error);
+          }
+        }
+      };
        
        // Attach the click listener
        blockEl.addEventListener('click', blockEl._clickHandler);
