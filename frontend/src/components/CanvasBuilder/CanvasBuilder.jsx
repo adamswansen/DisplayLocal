@@ -39,10 +39,8 @@
   
   /* ────────────────────────────────────────────────────────────── */
   
-  export default function CanvasBuilder() {
-    // console.log('CanvasBuilder: Component starting to render');
-  
-    try {
+export default function CanvasBuilder() {
+  // console.log('CanvasBuilder: Component starting to render');
       /* ────────── refs & router ────────── */
       const navigate                = useNavigate();   // reserved if you want to push instead of window.open
       const templateSelectRef       = useRef(null);
@@ -971,13 +969,5 @@
           />
         </div>
       );
-    } catch (error) {
-      // console.error('Error in CanvasBuilder:', error);
-      return (
-        <div className="canvas-builder">
-          <p>An error occurred. Please try again later.</p>
-        </div>
-      );
-    }
   }
-  
+
