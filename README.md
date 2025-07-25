@@ -87,16 +87,15 @@ Configure your ChronoTrack Live system to send timing data:
 
 ## 🎯 Usage Workflow
 
-1. **Login** with ChronoTrack or RunSignUp credentials
+1. **Choose Mode**
+   - **Results**: Login with your ChronoTrack or RunSignUp credentials
+   - **Pre-race**: Load participant roster **without needing ChronoTrack credentials**
 2. **Select Event** from your available races
-3. **Choose Mode**: 
-   - **Pre-race**: Load participant roster for upcoming events
-   - **Results**: Display live results as they come in
-4. **Customize Display**:
+3. **Customize Display**:
    - Add custom messages for participants
    - Upload logos and background images
    - Create templates using the visual editor
-5. **Go Live**: Real-time participant display as timing data arrives
+4. **Go Live**: Real-time participant display as timing data arrives
 
 ## 📁 Project Structure
 
