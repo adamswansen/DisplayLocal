@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import './ModeSelectionModal.css';
 
-const ModeSelectionModal = ({ isOpen, onModeSelect, credentials, onClose }) => {
+const ModeSelectionModal = ({ isOpen, onModeSelect, credentials, onClose, manual = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMode, setLoadingMode] = useState('');
 
   if (!isOpen) return null;
 
   const handleModeSelect = async (mode) => {
+    if (manual) {
+      onModeSelect(mode);
+      return;
+    }
+
     try {
       // Set loading state
       setIsLoading(true);
