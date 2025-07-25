@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ProviderSelectionModal from './ProviderSelectionModal';
 import CredentialsModal from './CredentialsModal';
 import EventSelectionModal from './EventSelectionModal';
+import ModeSelectionModal from './ModeSelectionModal';
 import { log } from '../utils/logger';
 
 const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
@@ -10,8 +11,7 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
   const [credentials, setCredentials] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [providersFetched, setProvidersFetched] = useState(false);
-
-  if (!isOpen) return null;
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -41,6 +41,10 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
       fetchProviders();
     }
   }, [isOpen, currentStep, providersFetched]);
+
+  if (!isOpen) return null;
+
+  console.log('PreRaceFlow: isOpen =', isOpen, 'currentStep =', currentStep);
 
   const handleProviderSelect = (provider) => {
     log('PreRaceFlow: Provider selected:', provider);
@@ -83,6 +87,15 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
       if (result.success) {
         log('PreRaceFlow: Event selection successful:', result);
         
+        // Check if ChronoTrack needs mode selection
+        if (result.ready_for_mode_selection) {
+          log('PreRaceFlow: ChronoTrack mode selection required');
+          // Store event data and show mode selection
+          setSelectedEvent({ eventData, result });
+          setCurrentStep('mode-selection');
+          return;
+        }
+        
         // Complete the flow and pass data to parent
         onComplete('pre-race', {
           success: true,
@@ -110,6 +123,59 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
     }
   };
 
+  const handleModeSelect = async (mode) => {
+    log('PreRaceFlow: Mode selected:', mode);
+    
+    try {
+      setIsLoading(true);
+      
+      // Call select-mode API to download roster
+      const response = await fetch('/api/select-mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode,
+          ...credentials
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        log('PreRaceFlow: Mode selection successful:', result);
+        
+        // Complete the flow with roster data
+        onComplete(mode, {
+          success: true,
+          mode: mode,
+          provider: selectedProvider,
+          event: selectedEvent.eventData.event,
+          credentials: credentials,
+          rosterData: result,
+          status: result.status,
+          race_name: result.race_name,
+          runners_loaded: result.runners_loaded,
+          background_refresh: result.background_refresh,
+          tcp_listener: result.middleware_connected
+        });
+      } else {
+        throw new Error(result.error || 'Mode selection failed');
+      }
+      
+    } catch (error) {
+      console.error('PreRaceFlow: Mode selection error:', error);
+      alert(`Mode selection failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBack = () => {
     if (currentStep === 'events') {
       setCurrentStep('credentials');
@@ -125,6 +191,7 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
     setCredentials({});
     setIsLoading(false);
     setProvidersFetched(false);
+    setSelectedEvent(null);
     onClose();
   };
 
@@ -156,6 +223,14 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
         onBack={handleBack}
         onClose={handleClose}
         isLoading={isLoading}
+      />
+
+      {/* Mode Selection (ChronoTrack only) */}
+      <ModeSelectionModal
+        isOpen={currentStep === 'mode-selection'}
+        onModeSelect={handleModeSelect}
+        credentials={credentials}
+        onClose={handleClose}
       />
     </>
   );

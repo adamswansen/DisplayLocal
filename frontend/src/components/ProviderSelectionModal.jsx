@@ -24,7 +24,9 @@ const ProviderSelectionModal = ({ isOpen, onProviderSelect, onClose, mode = 'pre
       }
       
       const data = await response.json();
+      console.log('ProviderSelectionModal: Fetched data =', data);
       if (data.success) {
+        console.log('ProviderSelectionModal: Setting providers =', data.providers);
         setProviders(data.providers);
       } else {
         throw new Error(data.error || 'Failed to fetch providers');
@@ -44,21 +46,32 @@ const ProviderSelectionModal = ({ isOpen, onProviderSelect, onClose, mode = 'pre
 
   if (!isOpen) return null;
 
+  console.log('ProviderSelectionModal: isOpen =', isOpen, 'mode =', mode);
+  console.log('ProviderSelectionModal: providers =', providers);
+  console.log('ProviderSelectionModal: loading =', loading, 'error =', error);
+
   const getAvailableProviders = () => {
+    console.log('ProviderSelectionModal: getAvailableProviders called, mode =', mode);
+    console.log('ProviderSelectionModal: providers =', providers);
     if (mode === 'pre-race') {
       // For pre-race mode, show providers that support pre-race
-      return Object.entries(providers).filter(([id, provider]) => 
+      const filtered = Object.entries(providers).filter(([id, provider]) => 
         provider.available && provider.supports_prerace
       );
+      console.log('ProviderSelectionModal: pre-race filtered providers =', filtered);
+      return filtered;
     } else {
       // For other modes, show all available providers
-      return Object.entries(providers).filter(([id, provider]) => 
+      const filtered = Object.entries(providers).filter(([id, provider]) => 
         provider.available
       );
+      console.log('ProviderSelectionModal: other mode filtered providers =', filtered);
+      return filtered;
     }
   };
 
   const availableProviders = getAvailableProviders();
+  console.log('ProviderSelectionModal: availableProviders =', availableProviders);
 
   return (
     <div className="provider-selection-backdrop">

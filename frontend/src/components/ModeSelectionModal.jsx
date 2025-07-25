@@ -7,8 +7,12 @@ const ModeSelectionModal = ({ isOpen, onModeSelect, credentials, onClose, manual
 
   if (!isOpen) return null;
 
+  console.log('ModeSelectionModal: Rendering modal, manual =', manual);
+
   const handleModeSelect = async (mode) => {
+    console.log('ModeSelectionModal: handleModeSelect called with mode:', mode);
     if (manual) {
+      console.log('ModeSelectionModal: Manual mode, calling onModeSelect');
       onModeSelect(mode);
       return;
     }
