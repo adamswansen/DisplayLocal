@@ -9,7 +9,6 @@
 
    import { useEffect, useRef, useState } from 'react';
    import grapesjs                        from 'grapesjs';
-   import interact                        from 'interactjs';
    
    import EDITOR_CONFIG                   from '../components/CanvasBuilder/editorConfig';
    import customStyles                    from '../components/CanvasBuilder/inlineStyles.js';
