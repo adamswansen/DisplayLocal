@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProviderSelectionModal from './ProviderSelectionModal';
 import CredentialsModal from './CredentialsModal';
 import EventSelectionModal from './EventSelectionModal';
@@ -8,8 +8,38 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [credentials, setCredentials] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [providersFetched, setProvidersFetched] = useState(false);
 
   if (!isOpen) return null;
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await fetch('/api/providers');
+        if (!response.ok) {
+          throw new Error('Failed to fetch providers');
+        }
+        const data = await response.json();
+        if (data.success) {
+          const availableProviders = Object.entries(data.providers).filter(
+            ([, provider]) => provider.available && provider.supports_prerace
+          );
+          if (availableProviders.length === 1) {
+            const [id] = availableProviders[0];
+            handleProviderSelect(id);
+          }
+        }
+      } catch (error) {
+        console.error('PreRaceFlow: Error fetching providers:', error);
+      } finally {
+        setProvidersFetched(true);
+      }
+    };
+
+    if (isOpen && currentStep === 'provider' && !providersFetched) {
+      fetchProviders();
+    }
+  }, [isOpen, currentStep, providersFetched]);
 
   const handleProviderSelect = (provider) => {
     console.log('PreRaceFlow: Provider selected:', provider);
@@ -93,6 +123,7 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
     setSelectedProvider(null);
     setCredentials({});
     setIsLoading(false);
+    setProvidersFetched(false);
     onClose();
   };
 
