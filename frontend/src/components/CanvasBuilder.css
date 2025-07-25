@@ -1,0 +1,499 @@
+.canvas-builder {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--color-grey-light);
+}
+
+:root {
+  --gjs-primary-color: #202e44;
+}
+
+.layout-root {
+  position: relative;
+}
+
+.canvas-builder__toolbar {
+  padding: var(--spacing-md);
+  background-color: var(--color-primary-contrast);
+  border-bottom: 1px solid var(--color-grey-main);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary-main);
+  color: var(--color-primary-contrast);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.toolbar-button:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.toolbar-button:active {
+  transform: translateY(0);
+}
+
+.button-text {
+  white-space: nowrap;
+}
+
+.canvas-builder__workspace {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  height: calc(100vh - 70px);
+}
+
+.canvas-builder__blocks {
+  background-color: var(--color-grey-light);
+  border-radius: var(--spacing-xs);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+}
+
+.canvas-builder__blocks > * {
+  background-color: var(--color-primary-contrast) !important;
+}
+
+.canvas-builder__editor {
+  background-color: var(--color-primary-contrast);
+  border-radius: var(--spacing-xs);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: auto;
+}
+
+.canvas-builder__right-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-primary-contrast);
+  border-radius: var(--spacing-xs);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  height: 100%;
+}
+
+.panel__switcher {
+  display: flex;
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-grey-main);
+  background-color: var(--color-grey-light);
+}
+
+.panel__switcher button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  margin-right: var(--spacing-xs);
+  border: 1px solid var(--color-grey-main);
+  background-color: var(--color-primary-contrast);
+  border-radius: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.panel__switcher button.active {
+  background-color: var(--color-primary-main);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary-main);
+}
+
+.panel__right {
+  display: none; /* Hide the original panel */
+}
+
+#style.canvas-builder__styles {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+  height: 100%;
+}
+
+#gjs {
+  border: 1px solid var(--color-grey-main);
+  background-image: 
+    linear-gradient(0deg, transparent 24%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 26%, transparent 27%, transparent 74%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.05) 76%, transparent 77%, transparent),
+    linear-gradient(90deg, transparent 24%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 26%, transparent 27%, transparent 74%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.05) 76%, transparent 77%, transparent);
+  background-size: 20px 20px;
+}
+
+/* GrapesJS specific styles */
+.gjs-block {
+  width: 100%;
+  height: auto;
+  min-height: 80px;
+  margin: 0;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-grey-main);
+  border-radius: var(--spacing-xs);
+  background-color: var(--color-grey-light);
+  font-weight: var(--font-weight-medium) !important;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+.gjs-block span {
+  font-size: 1.2rem;
+  color: var(--gjs-secondary-color);
+  font-weight: var(--font-weight-medium) !important;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.gjs-block:hover {
+  border-color: var(--color-primary-main);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+  transform: translateY(-2px);
+  background-color: var(--color-primary-contrast);
+}
+
+.gjs-block:active {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 2px rgba(0, 123, 255, 0.2);
+}
+
+.gjs-block img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.gjs-block-category {
+  font-weight: var(--font-weight-medium) !important;
+  padding: var(--spacing-sm);
+  background-color: var(--color-grey-light);
+  border-bottom: 1px solid var(--color-grey-main);
+  color: var(--gjs-secondary-color);
+}
+
+.gjs-block-label {
+  font-size: var(--font-size-xs);
+  color: var(--gjs-secondary-color);
+  font-weight: var(--font-weight-medium) !important;
+  text-align: center;
+  margin-top: var(--spacing-xs);
+}
+
+.gjs-fullscreen {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 9999;
+  background-color: var(--color-primary-contrast);
+}
+
+/* Style manager improvements */
+.gjs-sm-sectors {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}
+
+.gjs-sm-sector {
+  margin-bottom: var(--spacing-sm);
+}
+
+.gjs-sm-sector-title {
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-sm);
+  background-color: var(--color-grey-light);
+  border-bottom: 1px solid var(--color-grey-main);
+  cursor: pointer;
+}
+
+.gjs-sm-properties {
+  padding: var(--spacing-sm);
+}
+
+.gjs-field {
+  margin-bottom: var(--spacing-xs);
+}
+
+.gjs-field-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-grey-dark);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .canvas-builder__workspace {
+    grid-template-columns: 200px 1fr 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  .canvas-builder__workspace {
+    grid-template-columns: 180px 1fr 220px;
+  }
+}
+
+/* Hide GrapesJS header bar and borders */
+.gjs-frame-wrapper__top,
+.gjs-frame-wrapper__right,
+.gjs-frame-wrapper__bottom,
+.gjs-frame-wrapper__left {
+  display: none !important;
+}
+
+/* Make iframe take up all space */
+.gjs-frame-wrapper {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.gjs-frame {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+/* Ensure editor container takes full height */
+#gjs {
+  position: relative !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  border: none !important;
+}
+
+/* Make GrapesJS editor fill entire parent */
+.gjs-editor {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+}
+
+/* Make canvas fill entire editor */
+.gjs-cv-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Remove any toolbar or header spacing */
+.gjs-toolbar,
+.gjs-toolbar-items {
+  display: none !important;
+}
+
+/* Ensure no background or borders show through */
+.gjs-editor,
+.gjs-cv-canvas {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Styles for placeholder elements with shrink-to-fit */
+[data-placeholder] {
+  display: inline-block;
+  min-width: 20px;
+  min-height: 1em;
+  box-sizing: border-box;
+}
+
+/* Ensure proper text rendering for shrink-to-fit elements */
+[data-placeholder].shrink-to-fit {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ───────── Image Block Styles ───────── */
+.gjs-block-image {
+  position: relative;
+  min-height: 120px !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 2px solid #dee2e6 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.gjs-block-image:hover {
+  border-color: var(--color-primary-main) !important;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15) !important;
+  transform: translateY(-2px) !important;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+}
+
+.gjs-block-image:active {
+  cursor: pointer !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2) !important;
+}
+
+.image-block-thumbnail {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dee2e6;
+}
+
+.image-block-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-block-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-grey-dark);
+  margin-bottom: 4px;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-block-dimensions {
+  font-size: 0.65rem;
+  color: var(--color-grey-main);
+  font-weight: 500;
+}
+
+/* Loading state for image blocks */
+.gjs-block-image.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.gjs-block-image.loading .image-block-thumbnail {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Error state for image blocks */
+.gjs-block-image.error {
+  border-color: #dc3545 !important;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%) !important;
+}
+
+.gjs-block-image.error .image-block-thumbnail {
+  background: #dc3545;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+/* Empty state when no images are available */
+.gjs-block-category[data-category="Images"]:empty::after {
+  content: "No images uploaded yet";
+  display: block;
+  text-align: center;
+  padding: 20px;
+  color: var(--color-grey-main);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Responsive adjustments for image blocks */
+@media (max-width: 768px) {
+  .gjs-block-image {
+    min-height: 100px !important;
+    padding: 8px !important;
+  }
+  
+  .image-block-thumbnail {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 6px;
+  }
+  
+  .image-block-label {
+    font-size: 0.7rem;
+  }
+  
+  .image-block-dimensions {
+    font-size: 0.6rem;
+  }
+}
+
+.mode-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.mode-indicator .badge {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mode-indicator .badge.bg-primary {
+  background-color: var(--color-primary-main) !important;
+  color: var(--color-primary-contrast);
+}
+
+.mode-indicator .badge.bg-success {
+  background-color: var(--color-success-main) !important;
+  color: var(--color-primary-contrast);
+}

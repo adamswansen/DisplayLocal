@@ -1,0 +1,257 @@
+.runner-display-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.runner-display-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.runner-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+  transform-origin: top left;
+  will-change: transform;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.runner-stage.processing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.runner-template {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+/* Ensure iframe content is properly scaled */
+.runner-template iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  background-color: transparent;
+}
+
+/* Hide scrollbars but maintain functionality */
+.runner-template {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.runner-template::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Ensure images within the template maintain their positioning and don't stretch */
+.runner-template img {
+  object-fit: contain !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Preserve absolute positioning for template elements */
+.runner-template [style*="position: absolute"] {
+  position: absolute !important;
+}
+
+/* Ensure text elements are properly styled and positioned */
+.runner-template [data-placeholder] {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  position: absolute;
+}
+
+/* Animation for template updates */
+.runner-template {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.runner-template.updating {
+  opacity: 0.7;
+}
+
+/* Processing overlay styles */
+.processing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(2px);
+}
+
+.processing-overlay .processing-content {
+  text-align: center;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.processing-overlay .processing-spinner {
+  margin-bottom: 20px;
+  font-size: 48px;
+  animation: spin 1.5s linear infinite;
+}
+
+.processing-overlay .processing-text {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.settings-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  opacity: 0.8;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background: #f8f9fa;
+  border-left: 1px solid #ddd;
+  padding: 1rem;
+  overflow-y: auto;
+  z-index: 1100;
+}
+
+/* Ratio violation overlay styles */
+.ratio-violation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.ratio-violation-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ratio-violation-content h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.ratio-violation-content p {
+  margin-bottom: 0.5rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ratio-violation-details {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.ratio-violation-details p {
+  margin: 0.25rem 0;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.ratio-override-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1rem;
+}
+
+.ratio-override-button:hover {
+  background-color: #2980b9;
+}
+
+.ratio-override-button:active {
+  transform: translateY(1px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.gjs-block {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}

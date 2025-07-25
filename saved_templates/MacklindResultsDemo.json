@@ -1,0 +1,18 @@
+{
+  "name": "Macklind Results Demo",
+  "canvasWidth": 1920,
+  "canvasHeight": 1080,
+  "activeState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1920px;\n        height: 1080px;\n\n  background-image: url('/static/uploads/macbookscreen.jpg');\n  background-repeat: no-repeat;\n  background-position: center center;\n  background-size: cover;\n      }\n      * { box-sizing: border-box; } body {margin: 0;}#ifm9{width:1920px;height:1080px;position:relative;overflow:hidden;cursor:move;user-select:none;background-image:url('/static/uploads/macbookscreen.jpg');background-size:cover;background-repeat:no-repeat;background-position:center center;}#imeh{position:absolute;cursor:move;user-select:none;}#i23a{position:absolute;cursor:move;user-select:none;}\n    </style><body id=\"ifm9\" data-design-w=\"1920\" data-design-h=\"1080\"><div data-design-w=\"1920\" data-design-h=\"1080\" class=\"layout-root\" id=\"imeh\"><div class=\"safe-zone-overlay\" id=\"i23a\"></div></div></body>",
+    "canvasWidth": 1920,
+    "canvasHeight": 1080,
+    "state": "active"
+  },
+  "restingState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1920px;\n        height: 1080px;\n\n  background-image: url('/static/uploads/macbookscreen.jpg');\n  background-repeat: no-repeat;\n  background-position: center center;\n  background-size: cover;\n      }\n      * { box-sizing: border-box; } body {margin: 0;}#ifm9{width:1920px;height:1080px;position:relative;overflow:hidden;cursor:move;user-select:none;background-image:url('/static/uploads/macbookscreen.jpg');background-size:cover;background-repeat:no-repeat;background-position:center center;}#imeh{position:absolute;cursor:move;user-select:none;}#i23a{position:absolute;cursor:move;user-select:none;}\n    </style><body id=\"ifm9\" data-design-w=\"1920\" data-design-h=\"1080\"><div data-design-w=\"1920\" data-design-h=\"1080\" class=\"layout-root\" id=\"imeh\"><div class=\"safe-zone-overlay\" id=\"i23a\"></div></div></body>",
+    "canvasWidth": 1920,
+    "canvasHeight": 1080,
+    "state": "resting"
+  },
+  "version": "2.0"
+}

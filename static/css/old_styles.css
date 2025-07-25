@@ -1,0 +1,428 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#login-form {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#runner-display {
+    display: none;
+    margin-top: 20px;
+}
+
+.runner-card {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+:root {
+    --accent-color: #007bff;
+}
+
+#display-container {
+    min-height: 100vh;
+    transition: all 0.3s ease;
+    background-size: cover;
+    background-position: center;
+}
+
+#participant-info {
+    margin: 20px auto;
+    padding: 2rem;
+    max-width: 800px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+    background: none;
+    border-radius: 0;
+}
+
+/* Preview styles */
+[data-preview-style] {
+    opacity: 0.7;
+}
+
+.fullscreen-display {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.settings-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.settings-button:hover {
+    opacity: 1;
+}
+
+#display-settings {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    width: 300px;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Add this to remove any container margins */
+.container.mt-5 {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+/* Ensure the race name doesn't add unwanted space */
+#race-name {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#preview-display {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    min-height: 400px;
+    position: relative;
+}
+
+#preview-participant-info {
+    background: none;
+    border-radius: 0;
+    padding: 2rem;
+    margin: 1rem;
+}
+
+/* Make preview match live display */
+#preview-display * {
+    transition: all 0.3s ease;
+}
+
+/* Template Selection Styles */
+.template-card {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.template-card:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.template-preview {
+    height: 100px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.template-name {
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Template Preview Backgrounds */
+.default-preview {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+}
+
+.modern-preview {
+    background: #2c3e50;
+    border: 1px solid #3498db;
+}
+
+.elegant-preview {
+    background: #f5f5f5;
+    border: 1px solid #e74c3c;
+}
+
+.energetic-preview {
+    background: #2ecc71;
+    border: 1px solid #f1c40f;
+}
+
+.minimalist-preview {
+    background: #ffffff;
+    border: 1px solid #95a5a6;
+}
+
+.custom-preview {
+    background: linear-gradient(45deg, #f1f1f1 25%, transparent 25%, transparent 75%, #f1f1f1 75%, #f1f1f1) 0 0,
+                linear-gradient(45deg, #f1f1f1 25%, transparent 25%, transparent 75%, #f1f1f1 75%, #f1f1f1) 10px 10px;
+    background-color: #ffffff;
+    background-size: 20px 20px;
+}
+
+/* Add these styles for the customization container */
+#customization-container {
+    min-height: 100vh;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+/* Settings panel scrolling */
+.customization-settings {
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    position: sticky;
+    top: 20px;
+}
+
+/* Preview panel */
+.preview-panel {
+    position: sticky;
+    top: 20px;
+}
+
+/* Make cards more compact */
+.card-body {
+    padding: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem !important;
+}
+
+/* Compact form controls */
+.form-label.small {
+    margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+/* Template grid responsiveness */
+.template-card {
+    margin-bottom: 0.5rem;
+}
+
+.template-preview {
+    height: 80px;
+}
+
+/* Logo upload zone styles */
+.logo-upload-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: #f8f9fa;
+}
+
+.logo-upload-zone:hover {
+    border-color: var(--accent-color);
+    background: #f1f1f1;
+}
+
+.logo-upload-zone.drag-over {
+    border-color: var(--accent-color);
+    background: #e9ecef;
+}
+
+.logo-upload-zone input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.drop-zone-text {
+    pointer-events: none;
+}
+
+.drop-zone-text i {
+    font-size: 2rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+/* Update event-logo styles */
+.event-logo {
+    position: absolute;
+    width: var(--logo-size, 350px);
+    height: var(--logo-size, 350px);
+    z-index: 100;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: var(--logo-opacity, 1);
+    transition: all 0.3s ease;
+}
+
+.event-logo.top-left {
+    top: 20px;
+    left: 20px;
+}
+
+.event-logo.top-right {
+    top: 20px;
+    right: 20px;
+}
+
+.event-logo.bottom-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.event-logo.bottom-right {
+    bottom: 20px;
+    right: 20px;
+}
+
+/* Add to preview styles */
+#preview-display {
+    position: relative;
+}
+
+/* Message management styles */
+.message-upload-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: #f8f9fa;
+    margin-bottom: 1rem;
+}
+
+.message-upload-zone:hover {
+    border-color: var(--accent-color);
+    background: #f1f1f1;
+}
+
+.message-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: #fff;
+}
+
+.message-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.message-item:last-child {
+    border-bottom: none;
+}
+
+.message-item .message-text {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.message-item .message-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Add animate.css library for animations */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
+
+/* Animation durations */
+.animate__animated {
+    --animate-duration: 0.5s;
+}
+
+/* Custom animation for waiting state */
+.animate__pulse {
+    animation-duration: 2s;
+}
+
+/* Ensure smooth transitions */
+#runner-name,
+#runner-city,
+#message {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.queue-status {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0.7;
+}
+
+/* Update preview to match live display */
+#preview-runner-name,
+#preview-runner-city,
+#preview-message {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Optional: Add a subtle text glow effect for light backgrounds */
+.light-theme #runner-name,
+.light-theme #runner-city,
+.light-theme #message {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.3);
+}

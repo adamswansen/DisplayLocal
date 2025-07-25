@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Race Display</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load our new simplified JavaScript file first -->
+    <script src="{{ url_for('static', filename='js/display.js') }}"></script>
+    <!-- Load the original JS file for backward compatibility -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Login Container -->
+        <div id="login-container">
+            <div class="row">
+                <div class="col-md-6 offset-md-3 text-center">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" id="logo" alt="Event Logo" class="mb-4">
+                    <form id="loginForm" class="mb-3">
+                        <div class="mb-3">
+                            <input type="text" name="user_id" id="user-id" class="form-control" placeholder="User ID" value="{{ credentials.user_id }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="password" id="password" class="form-control" placeholder="Password" value="{{ credentials.password }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" name="event_id" id="event-id" class="form-control" placeholder="Event ID" value="{{ credentials.event_id }}" required>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between">
+                        <button id="startButton" class="btn btn-primary" onclick="startDisplay()">
+                            Start Display
+                        </button>
+                        <button id="testConnectionButton" class="btn btn-outline-secondary" onclick="testConnection()">
+                            Test Connection
+                        </button>
+                    </div>
+                    <div id="status" class="mt-3">
+                        <!-- Status messages will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Container -->
+        <div id="display-container">
+            <div id="display-background" class="display-background"></div>
+            <div class="display-content">
+                <div id="event-logo" class="event-logo"></div>
+                <button id="settings-toggle" class="btn btn-sm btn-secondary settings-button" onclick="toggleSettings()">
+                    ⚙️ Settings
+                </button>
+                <div class="text-center">
+                    <h2 id="race-name" class="mb-4"></h2>
+                    <div id="participant-info" class="p-4">
+                        <h1 id="runner-name" class="display-4"></h1>
+                        <h3 id="runner-city" class="h3 mb-3"></h3>
+                        <p id="message" class="lead"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update the customization container with the correct content -->
+        <div id="customization-container" style="display: none;">
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Settings Panel -->
+                    <div class="col-md-4 col-lg-3">
+                        <div class="customization-settings">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Display Customization</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Templates -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Templates</label>
+                                        <div class="row g-2">
+                                            <!-- Default -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="applyTemplate('default')">
+                                                    <div class="template-preview default-preview"></div>
+                                                    <div class="template-name">Default</div>
+                                                </div>
+                                            </div>
+                                            <!-- Modern -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="applyTemplate('modern')">
+                                                    <div class="template-preview modern-preview"></div>
+                                                    <div class="template-name">Modern</div>
+                                                </div>
+                                            </div>
+                                            <!-- Elegant -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="applyTemplate('elegant')">
+                                                    <div class="template-preview elegant-preview"></div>
+                                                    <div class="template-name">Elegant</div>
+                                                </div>
+                                            </div>
+                                            <!-- Energetic -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="applyTemplate('energetic')">
+                                                    <div class="template-preview energetic-preview"></div>
+                                                    <div class="template-name">Energetic</div>
+                                                </div>
+                                            </div>
+                                            <!-- Minimalist -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="applyTemplate('minimalist')">
+                                                    <div class="template-preview minimalist-preview"></div>
+                                                    <div class="template-name">Minimalist</div>
+                                                </div>
+                                            </div>
+                                            <!-- Custom -->
+                                            <div class="col-6">
+                                                <div class="template-card" onclick="showCustomOptions()">
+                                                    <div class="template-preview custom-preview"></div>
+                                                    <div class="template-name">Custom</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add this after Templates section and before Background Image -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Display Settings</label>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Queue Size</label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="range" id="queue-size" class="form-range" min="10" max="100" value="50">
+                                                <div class="small text-muted" style="min-width: 60px;">
+                                                    <span id="queue-size-value">50</span> runners
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Maximum number of runners to keep in queue</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Custom Colors -->
+                                    <div id="custom-colors" style="display: none;">
+                                        <div class="mb-3">
+                                            <label class="form-label">Background Color</label>
+                                            <input type="color" id="bg-color" class="form-control form-control-color">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Text Color</label>
+                                            <input type="color" id="text-color" class="form-control form-control-color">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Accent Color</label>
+                                            <input type="color" id="accent-color" class="form-control form-control-color">
+                                        </div>
+                                    </div>
+
+                                    <!-- Background Image Upload -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Background Image</label>
+                                        <input type="file" id="bg-image" class="form-control" accept="image/*">
+                                    </div>
+
+                                    <!-- Update the Event Logo section -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Event Logo</label>
+                                        <!-- Add drag-drop zone -->
+                                        <div class="logo-upload-zone mb-2" id="logo-drop-zone">
+                                            <input type="file" id="logo-upload" class="form-control" accept="image/*">
+                                            <div class="drop-zone-text">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <p>Drag & drop logo here or click to upload</p>
+                                                <small class="text-muted">Recommended size: 350x350px</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Add size and opacity controls -->
+                                        <div class="mb-2">
+                                            <label class="form-label small">Logo Size</label>
+                                            <input type="range" id="logo-size" class="form-range" min="50" max="500" value="350">
+                                            <div class="small text-muted text-end"><span id="logo-size-value">350</span>px</div>
+                                        </div>
+                                        
+                                        <div class="mb-2">
+                                            <label class="form-label small">Logo Opacity</label>
+                                            <input type="range" id="logo-opacity" class="form-range" min="10" max="100" value="100">
+                                            <div class="small text-muted text-end"><span id="logo-opacity-value">100</span>%</div>
+                                        </div>
+                                        
+                                        <!-- Position controls -->
+                                        <div class="mb-2">
+                                            <label class="form-label small">Logo Position</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <input type="radio" class="btn-check" name="logo-position" id="logo-top-left" value="top-left" autocomplete="off">
+                                                <label class="btn btn-outline-secondary btn-sm" for="logo-top-left">Top Left</label>
+                                                
+                                                <input type="radio" class="btn-check" name="logo-position" id="logo-top-right" value="top-right" autocomplete="off" checked>
+                                                <label class="btn btn-outline-secondary btn-sm" for="logo-top-right">Top Right</label>
+                                                
+                                                <input type="radio" class="btn-check" name="logo-position" id="logo-bottom-left" value="bottom-left" autocomplete="off">
+                                                <label class="btn btn-outline-secondary btn-sm" for="logo-bottom-left">Bottom Left</label>
+                                                
+                                                <input type="radio" class="btn-check" name="logo-position" id="logo-bottom-right" value="bottom-right" autocomplete="off">
+                                                <label class="btn btn-outline-secondary btn-sm" for="logo-bottom-right">Bottom Right</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add this after the Event Logo section and before Text Customization -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Custom Messages</label>
+                                        <div class="mb-2">
+                                            <div class="message-upload-zone" id="message-upload-zone">
+                                                <input type="file" id="message-upload" class="form-control" accept=".txt,.csv">
+                                                <div class="drop-zone-text">
+                                                    <i class="fas fa-file-alt"></i>
+                                                    <p>Upload message file</p>
+                                                    <small class="text-muted">Upload .txt or .csv file (one message per line)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Message list and controls -->
+                                        <div id="message-list-container" class="mb-2" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label small mb-0">Current Messages</label>
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="downloadMessages()">
+                                                    <i class="fas fa-download"></i> Export
+                                                </button>
+                                            </div>
+                                            <div class="message-list" id="message-list">
+                                                <!-- Messages will be listed here -->
+                                            </div>
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="addCustomMessage()">
+                                                    <i class="fas fa-plus"></i> Add Message
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Text Customization -->
+                                    <div class="text-customization">
+                                        <h6 class="mb-3">Text Customization</h6>
+
+                                        <!-- Runner Name settings -->
+                                        <div class="mb-4">
+                                            <label class="form-label">Runner Name</label>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Font Family</label>
+                                                <select id="name-font" class="form-select">
+                                                    <option value="Arial">Arial</option>
+                                                    <option value="'Times New Roman'">Times New Roman</option>
+                                                    <option value="Verdana">Verdana</option>
+                                                    <option value="'Trebuchet MS'">Trebuchet MS</option>
+                                                    <option value="Impact">Impact</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Size</label>
+                                                <input type="range" id="name-size" class="form-range" min="24" max="96" value="48">
+                                                <div class="small text-muted text-end"><span id="name-size-value">48</span>px</div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Color</label>
+                                                <input type="color" id="name-color" class="form-control form-control-color" value="#000000">
+                                            </div>
+                                            <!-- Add alignment options after font selection for Runner Name -->
+                                            <div class="mb-2">
+                                                <label class="form-label small">Alignment</label>
+                                                <div class="btn-group w-100" role="group">
+                                                    <input type="radio" class="btn-check" name="name-align" id="name-align-left" value="left" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary btn-sm" for="name-align-left">Left</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="name-align" id="name-align-center" value="center" autocomplete="off" checked>
+                                                    <label class="btn btn-outline-secondary btn-sm" for="name-align-center">Center</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="name-align" id="name-align-right" value="right" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary btn-sm" for="name-align-right">Right</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Message settings -->
+                                        <div class="mb-4">
+                                            <label class="form-label">Message</label>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Font Family</label>
+                                                <select id="message-font" class="form-select">
+                                                    <option value="Arial">Arial</option>
+                                                    <option value="'Times New Roman'">Times New Roman</option>
+                                                    <option value="Verdana">Verdana</option>
+                                                    <option value="'Trebuchet MS'">Trebuchet MS</option>
+                                                    <option value="Impact">Impact</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Size</label>
+                                                <input type="range" id="message-size" class="form-range" min="16" max="48" value="24">
+                                                <div class="small text-muted text-end"><span id="message-size-value">24</span>px</div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">Color</label>
+                                                <input type="color" id="message-color" class="form-control form-control-color" value="#000000">
+                                            </div>
+                                            <!-- Add alignment options after font selection for Message -->
+                                            <div class="mb-2">
+                                                <label class="form-label small">Alignment</label>
+                                                <div class="btn-group w-100" role="group">
+                                                    <input type="radio" class="btn-check" name="message-align" id="message-align-left" value="left" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary btn-sm" for="message-align-left">Left</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="message-align" id="message-align-center" value="center" autocomplete="off" checked>
+                                                    <label class="btn btn-outline-secondary btn-sm" for="message-align-center">Center</label>
+                                                    
+                                                    <input type="radio" class="btn-check" name="message-align" id="message-align-right" value="right" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary btn-sm" for="message-align-right">Right</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add this in the customization settings section -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Website Style Import</label>
+                                        <div class="input-group">
+                                            <input type="url" id="website-url" class="form-control" placeholder="Enter race website URL">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="fetchWebsiteStyles()">
+                                                Import Styles
+                                            </button>
+                                        </div>
+                                        <small class="text-muted">Import colors and fonts from the race website</small>
+                                        
+                                        <!-- Add style preview section -->
+                                        <div id="style-preview" class="mt-3" style="display: none;">
+                                            <h6>Extracted Styles</h6>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <div class="color-preview"></div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="font-preview"></div>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary mt-2" onclick="applyExtractedStyles()">
+                                                Apply These Styles
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add this near the background controls -->
+                                    <div class="mb-3">
+                                        <button class="btn btn-outline-danger btn-sm" onclick="clearSavedStyles()">
+                                            Reset Background
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Panel -->
+                    <div class="col-md-8 col-lg-9">
+                        <div class="preview-panel">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Preview</h5>
+                                    <div>
+                                        <button class="btn btn-secondary me-2" onclick="backToLogin()">Back</button>
+                                        <button class="btn btn-primary" onclick="startLiveDisplay()" id="startLiveButton">
+                                            Start Live Display
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="preview-display">
+                                        <div id="preview-background" class="display-background"></div>
+                                        <div class="display-content">
+                                            <div id="preview-event-logo" class="event-logo"></div>
+                                            <h2 id="preview-race-name">Race Name</h2>
+                                            <div id="preview-participant-info">
+                                                <h1 id="preview-runner-name">John Smith</h1>
+                                                <h3 id="preview-runner-city">Salt Lake City, UT</h3>
+                                                <p id="preview-message">You're crushing it! 💪</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
