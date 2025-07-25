@@ -9,17 +9,20 @@
  * Fetch all user images from the backend
  * @returns {Promise<Array>} Array of image objects with metadata
  */
+import { apiUrl } from './api';
+
 export async function fetchUserImages() {
   try {
-    const response = await fetch('/api/user-images');
+    const response = await fetch(apiUrl('/api/user-images'));
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errText = await response.text();
+      return { success: false, error: errText || `HTTP ${response.status}` };
     }
     const data = await response.json();
-    return data.images || [];
+    return { success: true, images: data.images || [] };
   } catch (error) {
     console.error('Failed to fetch user images:', error);
-    return [];
+    return { success: false, error: error.message };
   }
 }
 

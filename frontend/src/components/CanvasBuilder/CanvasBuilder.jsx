@@ -34,8 +34,6 @@
     buildTemplateBundle,
   }                                   from './templateUtils';
   import { DIMENSION_PRESETS }        from '../../utils/constants';
-  import { fetchUserImages }          from '../../utils/imageService';
-  import { generateImageBlocks }      from '../../grapes/blocks';
   
   /* ────────────────────────────────────────────────────────────── */
   
@@ -54,6 +52,7 @@
       const [currentName,   setCurrentName] = useState(null);
       const [msgMgrOpen,    setMsgMgrOpen]  = useState(false);
       const [canvasInitialized, setCanvasInitialized] = useState(false);
+      const [templateError, setTemplateError] = useState(null);
       
       // console.log('CanvasBuilder: State initialized');
       
@@ -72,6 +71,7 @@
         showCrop,
         userImages,
         imagesLoaded,
+        imageError,
       } = useGrapesEditor({
         targetWidth: 1920,  // default values
         targetHeight: 1080, // will be updated by dimension wizard
@@ -147,11 +147,18 @@
     
       /* ────────── template list helpers ────────── */
       const refreshTemplates = () =>
-        fetchTemplates().then((templateList) => {
-          // Ensure unique template names to prevent React key warnings
-          const uniqueTemplates = [...new Set(templateList)];
-          setTemplates(uniqueTemplates);
-        }).catch(console.error);
+        fetchTemplates().then((res) => {
+          if (res.success) {
+            const uniqueTemplates = [...new Set(res.templates)];
+            setTemplates(uniqueTemplates);
+            setTemplateError(null);
+          } else {
+            setTemplateError(res.error || 'Failed to fetch templates');
+          }
+        }).catch((err) => {
+          console.error(err);
+          setTemplateError(err.message);
+        });
     
       useEffect(() => {
         refreshTemplates();
@@ -347,9 +354,14 @@
         }
     
         try {
-          // console.log('📂 Loading template:', name);
-          const tpl = await fetchTemplate(name);
+          const res = await fetchTemplate(name);
+          if (!res.success) {
+            setTemplateError(res.error || 'Failed to load template');
+            return;
+          }
+          const tpl = res.template;
           setCurrentName(name);
+          setTemplateError(null);
     
           // console.log('📂 Template loaded:', {
           //   name,
@@ -662,7 +674,7 @@
             //   currentStateData: currentStateData ? 'present' : 'null'
             // });
             
-            await saveTemplate({
+            const res = await saveTemplate({
               editor: editorRef?.current,
               name: templateName,
               targetWidth,
@@ -670,8 +682,12 @@
               activeState: finalActiveState,
               restingState: finalRestingState,
             });
-            await refreshTemplates();
-            // console.log('💾 Successfully saved template:', templateName);
+            if (!res.success) {
+              setTemplateError(res.error || 'Failed to save template');
+            } else {
+              setTemplateError(null);
+              await refreshTemplates();
+            }
             return;
           } catch (error) {
             // console.error('💾 Failed to save template:', error);
@@ -699,7 +715,7 @@
           }
           
           // console.log('💾 Saving new template:', name);
-          await saveTemplate({
+          const res = await saveTemplate({
             editor: editorRef?.current,
             name,
             targetWidth,
@@ -707,8 +723,13 @@
             activeState: finalActiveState,
             restingState: finalRestingState,
           });
-          setCurrentName(name); // Set the current name after successful save
-          await refreshTemplates();
+          if (!res.success) {
+            setTemplateError(res.error || 'Failed to save template');
+          } else {
+            setTemplateError(null);
+            setCurrentName(name); // Set current name after successful save
+            await refreshTemplates();
+          }
         } catch (error) {
           // console.error('💾 Failed to save template:', error);
         }
@@ -732,7 +753,7 @@
           finalRestingState = currentStateData;
         }
         
-        await saveTemplate({
+        const res = await saveTemplate({
           editor: editorRef?.current,
           name,
           targetWidth,
@@ -740,8 +761,13 @@
           activeState: finalActiveState,
           restingState: finalRestingState,
         });
-        setCurrentName(name);
-        refreshTemplates();
+        if (!res.success) {
+          setTemplateError(res.error || 'Failed to save template');
+        } else {
+          setTemplateError(null);
+          setCurrentName(name);
+          refreshTemplates();
+        }
       };
     
       const handleDisplayMode = () => {
@@ -781,6 +807,12 @@
       /* ────────── JSX ────────── */
       return (
         <div className="canvas-builder">
+          {templateError && (
+            <div className="error-message">{templateError}</div>
+          )}
+          {imageError && (
+            <div className="error-message">{imageError}</div>
+          )}
     
           {/* ═══ Dimension-Wizard Modal ═══ */}
           {showWizard && (

@@ -270,8 +270,9 @@
      const [showCrop, setShowCrop] = useState(false);
      const [currentRotationHandle, setCurrentRotationHandle] = useState(null);
      const [selectedComponent, setSelectedComponent] = useState(null);
-     const [userImages, setUserImages] = useState([]);
-     const [imagesLoaded, setImagesLoaded] = useState(false);
+    const [userImages, setUserImages] = useState([]);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
+    const [imageError, setImageError] = useState(null);
      const [currentMode, setCurrentMode] = useState(null);
 
      useEffect(() => {
@@ -420,8 +421,14 @@
        /* ────────── Load User Images ────────── */
        const loadUserImages = async () => {
          try {
-           const images = await fetchUserImages();
+           const { success, images, error } = await fetchUserImages();
+           if (!success) {
+             setImageError(error);
+             setImagesLoaded(true);
+             return;
+           }
            setUserImages(images);
+           setImageError(null);
            setImagesLoaded(true);
            
            // Generate and register image blocks
@@ -474,6 +481,7 @@
            }
          } catch (error) {
            console.error('Failed to load user images:', error);
+           setImageError(error.message);
            setImagesLoaded(true); // Mark as loaded even on error
          }
        };
@@ -735,6 +743,6 @@
      // eslint-disable-next-line react-hooks/exhaustive-deps
      }, []);
 
-     return { editorRef, cropData, setCropData, showCrop, userImages, imagesLoaded };
-   }
+    return { editorRef, cropData, setCropData, showCrop, userImages, imagesLoaded, imageError };
+  }
    

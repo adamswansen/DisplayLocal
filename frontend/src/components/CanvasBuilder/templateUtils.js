@@ -407,18 +407,38 @@ function buildCompleteTemplate(editor, {
 
 /* ───────────── CRUD wrappers ───────────── */
 
+import { apiUrl } from '../../utils/api';
+
 /** GET /api/templates → [string] */
 async function fetchTemplates() {
-  const res  = await fetch('/api/templates');
-  if (!res.ok) throw new Error('Failed to fetch template list');
-  return res.json();                    // ['welcome', 'promo', …]
+  try {
+    const res = await fetch(apiUrl('/api/templates'));
+    if (!res.ok) {
+      const txt = await res.text();
+      return { success: false, error: txt || 'Failed to fetch template list' };
+    }
+    const data = await res.json();
+    return { success: true, templates: data };
+  } catch (err) {
+    console.error('Error fetching templates:', err);
+    return { success: false, error: err.message };
+  }
 }
 
 /** GET /api/templates/:name → {html, canvasWidth, canvasHeight, activeState, restingState, …} */
 async function fetchTemplate(name) {
-  const res = await fetch(`/api/templates/${encodeURIComponent(name)}`);
-  if (!res.ok) throw new Error(`Template "${name}" not found`);
-  return res.json();
+  try {
+    const res = await fetch(apiUrl(`/api/templates/${encodeURIComponent(name)}`));
+    if (!res.ok) {
+      const txt = await res.text();
+      return { success: false, error: txt || `Template "${name}" not found` };
+    }
+    const data = await res.json();
+    return { success: true, template: data };
+  } catch (err) {
+    console.error('Error fetching template:', err);
+    return { success: false, error: err.message };
+  }
 }
 
 /** POST /api/templates (create or overwrite) */
@@ -490,33 +510,36 @@ async function saveTemplate({
     }
     
     console.log('💾 Sending template to server...');
-    const res = await fetch('/api/templates', {
+    const res = await fetch(apiUrl('/api/templates'), {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body   : JSON.stringify(serializablePayload),
     });
-    
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error('💾 Server error:', res.status, errorText);
-      throw new Error(`Failed to save template "${name}"`);
+      return { success: false, error: errorText || `Failed to save template "${name}"` };
     }
-    
+
     const result = await res.json();
     console.log('💾 Template saved successfully:', result);
-    return result;
+    return { success: true, ...result };
   } catch (error) {
     console.error('💾 Error saving template:', error);
-    throw error;
+    return { success: false, error: error.message };
   }
 }
 
 /** DELETE /api/templates/:name */
 async function deleteTemplate(name) {
-  const res = await fetch(`/api/templates/${encodeURIComponent(name)}`, {
+  const res = await fetch(apiUrl(`/api/templates/${encodeURIComponent(name)}`), {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error(`Failed to delete template "${name}"`);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || `Failed to delete template "${name}"`);
+  }
 }
 
 /* ───────────── Display-mode helper ───────────── */
