@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EventSelectionModal.css';
+import { log } from '../utils/logger';
 
 const EventSelectionModal = ({ isOpen, provider, credentials, onEventSelect, onBack, onClose, isLoading: externalLoading }) => {
   const [events, setEvents] = useState([]);
@@ -21,8 +22,8 @@ const EventSelectionModal = ({ isOpen, provider, credentials, onEventSelect, onB
       setEvents([]);
       setSelectedEvents([]);
       
-      console.log('EventSelectionModal: Fetching events for provider:', provider);
-      console.log('EventSelectionModal: Using credentials:', credentials);
+      log('EventSelectionModal: Fetching events for provider:', provider);
+      log('EventSelectionModal: Using credentials:', credentials);
       
       const response = await fetch('/api/fetch-events', {
         method: 'POST',
@@ -42,7 +43,7 @@ const EventSelectionModal = ({ isOpen, provider, credentials, onEventSelect, onB
       const data = await response.json();
       
       if (data.success) {
-        console.log('EventSelectionModal: Events fetched successfully:', data.events);
+        log('EventSelectionModal: Events fetched successfully:', data.events);
         setEvents(data.events || []);
       } else {
         throw new Error(data.error || 'Failed to fetch events');
@@ -76,8 +77,8 @@ const EventSelectionModal = ({ isOpen, provider, credentials, onEventSelect, onB
     // For single event selection, use the first selected event
     const primaryEvent = selectedEvents[0];
     
-    console.log('EventSelectionModal: Selected events:', selectedEvents);
-    console.log('EventSelectionModal: Primary event:', primaryEvent);
+    log('EventSelectionModal: Selected events:', selectedEvents);
+    log('EventSelectionModal: Primary event:', primaryEvent);
     
     onEventSelect({
       event: primaryEvent,

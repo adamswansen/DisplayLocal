@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ProviderSelectionModal.css';
+import { log } from '../utils/logger';
 
 const ProviderSelectionModal = ({ isOpen, onProviderSelect, onClose, mode = 'pre-race' }) => {
   const [providers, setProviders] = useState({});
@@ -37,7 +38,7 @@ const ProviderSelectionModal = ({ isOpen, onProviderSelect, onClose, mode = 'pre
   };
 
   const handleProviderClick = (providerId, provider) => {
-    console.log('ProviderSelectionModal: Provider clicked:', providerId, provider);
+    log('ProviderSelectionModal: Provider clicked:', providerId, provider);
     onProviderSelect(providerId);
   };
 

@@ -37,6 +37,7 @@
   import { DIMENSION_PRESETS }        from '../../utils/constants';
   import { fetchUserImages }          from '../../utils/imageService';
   import { generateImageBlocks }      from '../../grapes/blocks';
+  import { log }                      from '../../utils/logger';
   
   /* ────────────────────────────────────────────────────────────── */
   
@@ -411,13 +412,13 @@
             const backgroundStyles = {};
             if (!cssText) return backgroundStyles;
             
-            console.log('🔍 Extracting background from CSS:', cssText.substring(0, 500) + '...');
+            log('🔍 Extracting background from CSS:', cssText.substring(0, 500) + '...');
             
             // Use regex to find all background properties
             const backgroundRegex = /background-[a-z-]+\s*:\s*[^;}]+/gi;
             const matches = cssText.match(backgroundRegex) || [];
             
-            console.log('🔍 Background regex matches:', matches);
+            log('🔍 Background regex matches:', matches);
             
             for (const match of matches) {
               const colonIndex = match.indexOf(':');
@@ -426,7 +427,7 @@
                 const value = match.substring(colonIndex + 1).trim();
                 if (property && value) {
                   backgroundStyles[property] = value;
-                  console.log(`🔍 Extracted background: ${property} = ${value}`);
+                  log(`🔍 Extracted background: ${property} = ${value}`);
                 }
               }
             }
@@ -435,18 +436,18 @@
             const layoutRootRegex = /\.layout-root\s*\{[^}]*background-color\s*:\s*([^;}]+)/gi;
             const layoutRootMatches = cssText.match(layoutRootRegex) || [];
             
-            console.log('🔍 Layout root regex matches:', layoutRootMatches);
+            log('🔍 Layout root regex matches:', layoutRootMatches);
             
             for (const match of layoutRootMatches) {
               const colorMatch = match.match(/background-color\s*:\s*([^;}]+)/i);
               if (colorMatch) {
                 const value = colorMatch[1].trim();
                 backgroundStyles['background-color'] = value;
-                console.log(`🔍 Extracted from layout-root: background-color = ${value}`);
+                log(`🔍 Extracted from layout-root: background-color = ${value}`);
               }
             }
             
-            console.log('🔍 Final background styles:', backgroundStyles);
+            log('🔍 Final background styles:', backgroundStyles);
             return backgroundStyles;
           };
 
@@ -468,7 +469,7 @@
               animationData.duration = element.getAttribute('data-anim-dur');
               animationData.delay = element.getAttribute('data-anim-delay');
               
-              console.log('🔍 Extracted animation data from HTML:', animationData);
+              log('🔍 Extracted animation data from HTML:', animationData);
             }
             
             return animationData;
@@ -500,7 +501,7 @@
               }
             }
             
-            console.log('🔍 Extracted animation data from CSS (fallback):', animationData);
+            log('🔍 Extracted animation data from CSS (fallback):', animationData);
             return animationData;
           };
 
@@ -511,8 +512,8 @@
           // Use HTML animation data if available, otherwise fall back to CSS
           const finalAnimationData = Object.keys(htmlAnimationData).length > 0 ? htmlAnimationData : cssAnimationData;
           
-          console.log('🔍 Extracted background styles from CSS:', cssBackgroundStyles);
-          console.log('🔍 Final animation data:', finalAnimationData);
+          log('🔍 Extracted background styles from CSS:', cssBackgroundStyles);
+          log('🔍 Final animation data:', finalAnimationData);
 
           // Apply extracted background styles to wrapper and layout root
           setTimeout(() => {
@@ -526,7 +527,7 @@
                 ...cssBackgroundStyles
               };
               
-              console.log('🔍 Applying wrapper styles:', wrapperStyles);
+              log('🔍 Applying wrapper styles:', wrapperStyles);
               editorWrapper.addStyle(wrapperStyles);
               
               // Ensure wrapper has dimension attributes
@@ -545,7 +546,7 @@
                 ...cssBackgroundStyles
               };
               
-              console.log('🔍 Applying root styles:', rootStyles);
+              log('🔍 Applying root styles:', rootStyles);
               rootComponent.addStyle(rootStyles);
               
               // Ensure layout root has dimension attributes

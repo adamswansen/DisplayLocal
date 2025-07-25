@@ -8,6 +8,7 @@
    ------------------------------------------------------------------ */
 
 import { forceAnimationAttributeSync } from '../../utils/animationSync';
+import { log } from '../../utils/logger';
 
 /* Small helper – walk every component in the canvas */
 const walkComponents = (editor, cb) =>
@@ -19,7 +20,7 @@ function buildTemplateBundle(editor, {
   targetHeight = 1080,
   state = 'active', // 'active' or 'resting'
 } = {}) {
-  console.log('🔧 buildTemplateBundle: Starting template build for state:', state);
+  log('🔧 buildTemplateBundle: Starting template build for state:', state);
   
   // Validate editor
   if (!editor || typeof editor.getWrapper !== 'function') {
@@ -41,15 +42,15 @@ function buildTemplateBundle(editor, {
   const wrapperStyle = wrapper.getStyle() || {};
   const bgColor      = wrapperStyle['background-color'] || wrapperStyle.background || 'transparent';
 
-  console.log('🔧 Wrapper styles:', wrapperStyle);
-  console.log('🔧 Background color extracted:', bgColor);
+  log('🔧 Wrapper styles:', wrapperStyle);
+  log('🔧 Background color extracted:', bgColor);
 
   // Extract all background properties from wrapper styles
   const backgroundStyles = {};
   ['background-image', 'background-repeat', 'background-position', 'background-size', 'background-attachment'].forEach(prop => {
     if (wrapperStyle[prop]) {
       backgroundStyles[prop] = wrapperStyle[prop];
-      console.log(`🔧 Found background style: ${prop} = ${wrapperStyle[prop]}`);
+      log(`🔧 Found background style: ${prop} = ${wrapperStyle[prop]}`);
     }
   });
 
@@ -58,11 +59,11 @@ function buildTemplateBundle(editor, {
     if (wrapperStyle[prop]) {
       const kebabProp = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
       backgroundStyles[kebabProp] = wrapperStyle[prop];
-      console.log(`🔧 Found background style (camelCase): ${prop} = ${wrapperStyle[prop]} -> ${kebabProp}`);
+      log(`🔧 Found background style (camelCase): ${prop} = ${wrapperStyle[prop]} -> ${kebabProp}`);
     }
   });
 
-  console.log('🔧 Background styles extracted:', backgroundStyles);
+  log('🔧 Background styles extracted:', backgroundStyles);
 
   // canvas dimensions stored in attributes (`data-design-w` / `h`)
   const wrapperAttrs = wrapper.getAttributes() || {};
@@ -87,8 +88,8 @@ function buildTemplateBundle(editor, {
       css = '';
     }
     
-    console.log('🔧 Raw HTML length:', html.length);
-    console.log('🔧 Raw CSS length:', css.length);
+    log('🔧 Raw HTML length:', html.length);
+    log('🔧 Raw CSS length:', css.length);
     
     // Walk through all components and collect their styles
     const componentStylesArray = [];
@@ -102,7 +103,7 @@ function buildTemplateBundle(editor, {
       
       // Skip if we've already processed this component
       if (processedComponents.has(componentId)) {
-        console.log(`🔧 Skipping already processed component ${componentId}`);
+        log(`🔧 Skipping already processed component ${componentId}`);
         return;
       }
       
@@ -115,14 +116,14 @@ function buildTemplateBundle(editor, {
                                component.getClasses().includes('safe-zone-overlay');
       
       if (isLayoutComponent) {
-        console.log(`🔧 Skipping layout component ${componentId} (${componentType})`);
+        log(`🔧 Skipping layout component ${componentId} (${componentType})`);
         processedComponents.add(componentId);
         return;
       }
       
       // Skip components without meaningful content
       if (!component.getStyle() || Object.keys(component.getStyle()).length === 0) {
-        console.log(`🔧 Skipping component ${componentId} (${componentType}) - no styles`);
+        log(`🔧 Skipping component ${componentId} (${componentType}) - no styles`);
         processedComponents.add(componentId);
         return;
       }
@@ -152,7 +153,7 @@ function buildTemplateBundle(editor, {
         };
       }
       
-      console.log(`🔧 Component ${componentId} (${componentType}):`, {
+      log(`🔧 Component ${componentId} (${componentType}):`, {
         styles: componentStyles,
         attributes: componentAttrs,
         classes: componentClasses,
@@ -192,7 +193,7 @@ function buildTemplateBundle(editor, {
         componentCSS += `}\n`;
         componentStylesArray.push(componentCSS);
         
-        console.log(`🔧 Generated CSS for ${componentId}:`, componentCSS);
+        log(`🔧 Generated CSS for ${componentId}:`, componentCSS);
       }
       
       // Store component attributes for later processing
@@ -233,7 +234,7 @@ function buildTemplateBundle(editor, {
             attributes: animationAttrs
           });
         }
-        console.log(`🔧 Added animation attributes for ${componentId}:`, animationAttrs);
+        log(`🔧 Added animation attributes for ${componentId}:`, animationAttrs);
       }
     });
     
@@ -242,7 +243,7 @@ function buildTemplateBundle(editor, {
       // Deduplicate CSS rules to prevent conflicts
       const uniqueCSS = [...new Set(componentStylesArray)];
       css += '\n/* Component styles */\n' + uniqueCSS.join('\n');
-      console.log(`🔧 Added ${uniqueCSS.length} unique CSS rules (filtered from ${componentStylesArray.length} total)`);
+      log(`🔧 Added ${uniqueCSS.length} unique CSS rules (filtered from ${componentStylesArray.length} total)`);
     }
     
     // Add global font-size rules for better display compatibility
@@ -283,12 +284,12 @@ body [data-placeholder="message"] {
 `;
       
       css += globalFontSizeCSS;
-      console.log(`🔧 Added global font-size CSS with size: ${Array.from(fontSizes.values())[0]}`);
+      log(`🔧 Added global font-size CSS with size: ${Array.from(fontSizes.values())[0]}`);
     }
     
     // Note: Animation data is now handled as HTML attributes, not CSS properties
-    console.log('🔧 Final CSS length:', css.length);
-    console.log('🔧 Animation data will be applied as HTML attributes');
+    log('🔧 Final CSS length:', css.length);
+    log('🔧 Animation data will be applied as HTML attributes');
     
   } catch (error) {
     console.warn('Error extracting HTML/CSS from editor:', error);
@@ -299,7 +300,7 @@ body [data-placeholder="message"] {
   /* inject background + dimension attributes on layout-root */
   let processedHtml = html;
   try {
-    console.log('🔧 Processing HTML with background styles:', backgroundStyles);
+    log('🔧 Processing HTML with background styles:', backgroundStyles);
     
     const temp = document.createElement('div');
     temp.innerHTML = html;
@@ -309,19 +310,19 @@ body [data-placeholder="message"] {
       // Apply all background styles to layout root
       Object.entries(backgroundStyles).forEach(([prop, value]) => {
         layoutRoot.style[prop] = value;
-        console.log(`🔧 Applied background style to layout root: ${prop} = ${value}`);
+        log(`🔧 Applied background style to layout root: ${prop} = ${value}`);
       });
       layoutRoot.setAttribute('data-design-w', canvasWidth);
       layoutRoot.setAttribute('data-design-h', canvasHeight);
     }
     
     // Ensure component styles and attributes are applied to HTML elements
-    console.log('🔧 Processing component attributes:', componentAttributes.length, 'components');
+    log('🔧 Processing component attributes:', componentAttributes.length, 'components');
     
     componentAttributes.forEach(({ id, type, attributes }) => {
       const element = temp.querySelector(`[id="${id}"]`);
       if (element) {
-        console.log(`🔧 Processing element ${id}:`, { attributes });
+        log(`🔧 Processing element ${id}:`, { attributes });
         
         // Apply all attributes to the element
         if (attributes && Object.keys(attributes).length > 0) {
@@ -331,17 +332,17 @@ body [data-placeholder="message"] {
                 // Handle data attributes
                 const stringValue = typeof value === 'object' ? value.toString() : String(value);
                 element.setAttribute(prop, stringValue);
-                console.log(`🔧 Applied data attribute to ${id}: ${prop} = ${stringValue}`);
+                log(`🔧 Applied data attribute to ${id}: ${prop} = ${stringValue}`);
               } else if (prop === 'class') {
                 // Handle class attributes
                 const classValue = typeof value === 'object' ? value.toString() : String(value);
                 element.className = classValue;
-                console.log(`🔧 Applied class to ${id}: ${classValue}`);
+                log(`🔧 Applied class to ${id}: ${classValue}`);
               } else {
                 // Handle other attributes
                 const stringValue = typeof value === 'object' ? value.toString() : String(value);
                 element.setAttribute(prop, stringValue);
-                console.log(`🔧 Applied attribute to ${id}: ${prop} = ${stringValue}`);
+                log(`🔧 Applied attribute to ${id}: ${prop} = ${stringValue}`);
               }
             }
           });
@@ -355,7 +356,7 @@ body [data-placeholder="message"] {
     });
 
     processedHtml = temp.innerHTML;
-    console.log('🔧 Processed HTML length:', processedHtml.length);
+    log('🔧 Processed HTML length:', processedHtml.length);
   } catch (error) {
     console.warn('Error processing HTML:', error);
     processedHtml = html;
@@ -431,7 +432,7 @@ async function saveTemplate({
   restingState = null,
 }) {
   try {
-    console.log('💾 saveTemplate: Starting save for template:', name);
+    log('💾 saveTemplate: Starting save for template:', name);
     
     // Validate inputs
     if (!editor) {
@@ -450,7 +451,7 @@ async function saveTemplate({
     
     // If both states are provided, use them directly
     if (activeState && restingState) {
-      console.log('💾 Using provided states');
+      log('💾 Using provided states');
       completeTemplate = {
         activeState: activeState,
         restingState: restingState,
@@ -458,7 +459,7 @@ async function saveTemplate({
         canvasHeight: activeState.canvasHeight,
       };
     } else {
-      console.log('💾 Building complete template with both states');
+      log('💾 Building complete template with both states');
       // Build complete template with both states (for new templates)
       completeTemplate = buildCompleteTemplate(editor, {
         targetWidth,
@@ -474,7 +475,7 @@ async function saveTemplate({
       ...completeTemplate
     };
     
-    console.log('💾 Template payload structure:', {
+    log('💾 Template payload structure:', {
       name: serializablePayload.name,
       hasActiveState: !!serializablePayload.activeState,
       hasRestingState: !!serializablePayload.restingState,
@@ -489,7 +490,7 @@ async function saveTemplate({
       throw new Error('No active state content to save');
     }
     
-    console.log('💾 Sending template to server...');
+    log('💾 Sending template to server...');
     const res = await fetch('/api/templates', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -503,7 +504,7 @@ async function saveTemplate({
     }
     
     const result = await res.json();
-    console.log('💾 Template saved successfully:', result);
+    log('💾 Template saved successfully:', result);
     return result;
   } catch (error) {
     console.error('💾 Error saving template:', error);
@@ -569,7 +570,7 @@ function cacheTemplateForDisplay(editor, {
       timestamp: Date.now(),
     };
     
-    console.log('Caching template for display:', {
+    log('Caching template for display:', {
       hasActiveState: !!completeTemplate.activeState,
       hasRestingState: !!completeTemplate.restingState,
       activeStateHtml: completeTemplate.activeState?.html ? 'present' : 'null',

@@ -4,6 +4,8 @@
    Ensures animation attributes are properly synchronized before export.
    ------------------------------------------------------------------ */
 
+import { log } from './logger';
+
 /**
  * Force animation attribute synchronization on a component
  * @param {Object} component - GrapesJS component
@@ -34,6 +36,6 @@ export function forceAnimationAttributeSync(component) {
   
   if (Object.keys(attrs).length) {
     component.addAttributes(attrs);
-    console.log('Animation sync - CSS styles to attributes:', attrs);
+    log('Animation sync - CSS styles to attributes:', attrs);
   }
 } 
