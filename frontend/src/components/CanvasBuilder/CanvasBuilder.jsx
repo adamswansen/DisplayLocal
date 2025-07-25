@@ -12,6 +12,7 @@
     useEffect,
     useRef,
     useState,
+    useCallback,
     useNavigate,
   } from './CanvasBuilder.imports';
   
@@ -620,7 +621,7 @@
       };
     
       /* ────────── Command callbacks (defined after hooks) ────────── */
-      const handleSave = async () => {
+      const handleSave = useCallback(async () => {
         // console.log('💾 handleSave: Starting save process');
         // console.log('💾 Current template name at save:', currentName);
         // console.log('💾 Template selector value:', templateSelectRef.current?.value);
@@ -712,9 +713,20 @@
         } catch (error) {
           // console.error('💾 Failed to save template:', error);
         }
-      };
+      }, [
+        currentName,
+        activeStateData,
+        restingStateData,
+        currentState,
+        targetWidth,
+        targetHeight,
+        refreshTemplates,
+        saveCurrentState,
+        setCurrentName,
+        editorRef,
+      ]);
     
-      const handleSaveAs = async () => {
+      const handleSaveAs = useCallback(async () => {
         const name = window.prompt('Template name');
         if (!name) return;
         
@@ -742,9 +754,19 @@
         });
         setCurrentName(name);
         refreshTemplates();
-      };
+      }, [
+        activeStateData,
+        restingStateData,
+        currentState,
+        targetWidth,
+        targetHeight,
+        refreshTemplates,
+        setCurrentName,
+        saveCurrentState,
+        editorRef,
+      ]);
     
-      const handleDisplayMode = () => {
+      const handleDisplayMode = useCallback(() => {
         // Save current state before caching for display
         const currentStateData = saveCurrentState();
         
@@ -766,7 +788,15 @@
           restingState: finalRestingState,
         });
         window.open('/display', '_blank', 'noopener');          // keep editor open
-      };
+      }, [
+        activeStateData,
+        restingStateData,
+        currentState,
+        targetWidth,
+        targetHeight,
+        saveCurrentState,
+        editorRef,
+      ]);
     
       /* ────────── Wire up command callbacks ────────── */
       useEffect(() => {
@@ -776,7 +806,7 @@
           editor.Commands.get('save-as-template').run = handleSaveAs;
           editor.Commands.get('fullscreen').run = handleDisplayMode;
         }
-      }, [editorRef, handleSave, handleSaveAs, handleDisplayMode]);
+      }, [handleSave, handleSaveAs, handleDisplayMode]);
     
       /* ────────── JSX ────────── */
       return (
