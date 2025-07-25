@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ProviderSelectionModal from './ProviderSelectionModal';
 import CredentialsModal from './CredentialsModal';
 import EventSelectionModal from './EventSelectionModal';
+import { log } from '../utils/logger';
 
 const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
   const [currentStep, setCurrentStep] = useState('provider');
@@ -12,19 +13,19 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
   if (!isOpen) return null;
 
   const handleProviderSelect = (provider) => {
-    console.log('PreRaceFlow: Provider selected:', provider);
+    log('PreRaceFlow: Provider selected:', provider);
     setSelectedProvider(provider);
     setCurrentStep('credentials');
   };
 
   const handleCredentialsSubmit = (providerCredentials) => {
-    console.log('PreRaceFlow: Credentials submitted for provider:', selectedProvider);
+    log('PreRaceFlow: Credentials submitted for provider:', selectedProvider);
     setCredentials(providerCredentials);
     setCurrentStep('events');
   };
 
   const handleEventSelect = async (eventData) => {
-    console.log('PreRaceFlow: Event selected:', eventData);
+    log('PreRaceFlow: Event selected:', eventData);
     
     try {
       setIsLoading(true);
@@ -50,7 +51,7 @@ const PreRaceFlow = ({ isOpen, onComplete, onClose }) => {
       const result = await response.json();
       
       if (result.success) {
-        console.log('PreRaceFlow: Event selection successful:', result);
+        log('PreRaceFlow: Event selection successful:', result);
         
         // Complete the flow and pass data to parent
         onComplete('pre-race', {

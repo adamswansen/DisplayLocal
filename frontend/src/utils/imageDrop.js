@@ -10,8 +10,10 @@
  * @param {Object} component - The dropped component
  * @param {Object} editor - GrapesJS editor instance
  */
+import { log } from './logger';
+
 export function handleImageDrop(component, editor) {
-  console.log('Image dropped:', component);
+  log('Image dropped:', component);
   
   // Get the target component (where the image was dropped)
   const target = component;
@@ -41,19 +43,19 @@ export function handleImageDrop(component, editor) {
   const targetWidth = parseInt(wrapper.getAttributes()?.['data-design-w']) || 1920;
   const targetHeight = parseInt(wrapper.getAttributes()?.['data-design-h']) || 1080;
   
-  console.log('Target dimensions:', targetWidth, 'x', targetHeight);
-  console.log('Image dimensions:', dimensions.width, 'x', dimensions.height);
+  log('Target dimensions:', targetWidth, 'x', targetHeight);
+  log('Image dimensions:', dimensions.width, 'x', dimensions.height);
   
   // Check if this is a layout root component
   if (target && target.get('classes') && target.get('classes').includes('layout-root')) {
     const targetRatio = targetWidth / targetHeight;
     const imageRatio = dimensions.width / dimensions.height;
     
-    console.log('Aspect ratios - Target:', targetRatio, 'Image:', imageRatio);
+    log('Aspect ratios - Target:', targetRatio, 'Image:', imageRatio);
     
     // Task 2A: Exact dimension match
     if (dimensions.width === targetWidth && dimensions.height === targetHeight) {
-      console.log('Exact dimension match - applying image directly');
+      log('Exact dimension match - applying image directly');
       
       target.setStyle({
         'background-image': `url(${imageUrl})`,
@@ -77,7 +79,7 @@ export function handleImageDrop(component, editor) {
         dimensions.height >= targetHeight && 
         Math.abs(targetRatio - imageRatio) < 0.01) {
       
-      console.log('Larger image with matching aspect ratio - opening crop modal');
+      log('Larger image with matching aspect ratio - opening crop modal');
       
       // Store the data in the editor for the component to access
       editor.set('cropImageData', {
@@ -93,13 +95,13 @@ export function handleImageDrop(component, editor) {
     }
     
     // Task 2C: Aspect mismatch or too small
-    console.log('Image dimensions or aspect ratio mismatch');
+    log('Image dimensions or aspect ratio mismatch');
     alert(`Image must be ${targetWidth}×${targetHeight} or larger with same ratio.`);
     return true; // Prevent the drop
   }
   
   // If not a layout root, create a regular image component
-  console.log('Creating regular image component');
+  log('Creating regular image component');
   
   // Create a new image component
   const imageComponent = editor.addComponent({
