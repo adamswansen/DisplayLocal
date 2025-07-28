@@ -1,0 +1,18 @@
+{
+  "name": "adadad",
+  "canvasWidth": 1080,
+  "canvasHeight": 1920,
+  "activeState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1080px;\n        height: 1920px;\n\n      }\n      * { box-sizing: border-box; } body {margin: 0;}#iom1{width:1080px;height:1920px;position:relative;overflow:hidden;cursor:move;user-select:none;}#iock{position:absolute;cursor:move;user-select:none;}#i05y{position:absolute;cursor:move;user-select:none;}\n    </style><div data-design-w=\"1080\" data-design-h=\"1920\" class=\"layout-root\" id=\"iock\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"><div class=\"safe-zone-overlay\" id=\"i05y\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"></div></div>",
+    "canvasWidth": 1080,
+    "canvasHeight": 1920,
+    "state": "active"
+  },
+  "restingState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1080px;\n        height: 1920px;\n\n      }\n      * { box-sizing: border-box; } body {margin: 0;}.layout-root{background-color:transparent;width:1080px;height:1920px;background-image:url(\"/static/uploads/NavyStripeBackground.png\");}#is13{position:absolute;cursor:move;user-select:none;}#iujr{position:absolute;cursor:move;user-select:none;}#iom1{background-color:transparent;width:1080px;height:1920px;overflow:hidden;position:relative;margin:0;padding:0;}\n    </style><div data-design-w=\"1080\" data-design-h=\"1920\" id=\"is13\" class=\"layout-root\" style=\"box-sizing: border-box !important; background-color: transparent !important; width: 1080px !important; height: 1920px !important; background-image: url(&quot;/static/uploads/NavyStripeBackground.png&quot;) !important; position: absolute !important; cursor: move !important;\"><div id=\"iujr\" class=\"safe-zone-overlay\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"></div></div>",
+    "canvasWidth": 1080,
+    "canvasHeight": 1920,
+    "state": "resting"
+  },
+  "version": "2.0"
+}

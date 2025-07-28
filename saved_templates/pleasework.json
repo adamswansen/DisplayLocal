@@ -1,0 +1,18 @@
+{
+  "name": "please work",
+  "canvasWidth": 1080,
+  "canvasHeight": 1920,
+  "activeState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1080px;\n        height: 1920px;\n\n      }\n      * { box-sizing: border-box; } body {margin: 0;}#iim9{width:1080px;height:1920px;position:relative;overflow:hidden;cursor:move;user-select:none;}#i0v7{position:absolute;cursor:move;user-select:none;}#ic2u{position:absolute;cursor:move;user-select:none;}\n    </style><div data-design-w=\"1080\" data-design-h=\"1920\" class=\"layout-root\" id=\"i0v7\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"><div class=\"safe-zone-overlay\" id=\"ic2u\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"></div></div>",
+    "canvasWidth": 1080,
+    "canvasHeight": 1920,
+    "state": "active"
+  },
+  "restingState": {
+    "html": "\n    <style>\n      @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');\n      .layout-root {\n        background-color: transparent;\n        width : 1080px;\n        height: 1920px;\n\n      }\n      * { box-sizing: border-box; } body {margin: 0;}#iim9{width:1080px;height:1920px;position:relative;overflow:hidden;cursor:move;user-select:none;}#i0v7{position:absolute;cursor:move;user-select:none;}#ic2u{position:absolute;cursor:move;user-select:none;}\n    </style><div data-design-w=\"1080\" data-design-h=\"1920\" class=\"layout-root\" id=\"i0v7\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"><div class=\"safe-zone-overlay\" id=\"ic2u\" style=\"box-sizing: border-box !important; position: absolute !important; cursor: move !important;\"></div></div>",
+    "canvasWidth": 1080,
+    "canvasHeight": 1920,
+    "state": "resting"
+  },
+  "version": "2.0"
+}

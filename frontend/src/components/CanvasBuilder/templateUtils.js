@@ -14,6 +14,86 @@ import { log } from '../../utils/logger';
 const walkComponents = (editor, cb) =>
   editor.getWrapper().find('*').forEach(cb);
 
+/* Helper function to bake CSS styles into HTML as inline styles */
+const bakeInlineStyles = (html, css) => {
+  try {
+    // Create a temporary container to work with the HTML
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = html;
+    
+    // Parse CSS rules to extract component-specific styles
+    const cssRules = parseCSSRulesFromString(css);
+    
+    // Apply CSS rules as inline styles to preserve them
+    cssRules.forEach(rule => {
+      if (rule.selector && rule.styles) {
+        try {
+          // Find elements matching the selector
+          const elements = tempContainer.querySelectorAll(rule.selector);
+          elements.forEach(element => {
+            // Apply each style as inline style
+            Object.entries(rule.styles).forEach(([prop, value]) => {
+              if (value && prop !== 'data-anim' && prop !== 'data-anim-dur' && prop !== 'data-anim-delay') {
+                element.style.setProperty(prop, value, 'important');
+              }
+            });
+          });
+        } catch (e) {
+          console.warn('Could not apply CSS rule:', rule.selector, e);
+        }
+      }
+    });
+    
+    return tempContainer.innerHTML;
+  } catch (error) {
+    console.warn('Error baking inline styles:', error);
+    return html; // Return original HTML if processing fails
+  }
+};
+
+/* Helper function to parse CSS into rules */
+const parseCSSRulesFromString = (css) => {
+  const rules = [];
+  
+  try {
+    // Simple CSS parser for our specific format
+    const ruleMatches = css.match(/([^{]+)\{([^}]+)\}/g);
+    
+    if (ruleMatches) {
+      ruleMatches.forEach(ruleText => {
+        const match = ruleText.match(/([^{]+)\{([^}]+)\}/);
+        if (match && match.length >= 3) {
+          const selector = match[1].trim();
+          const styleText = match[2].trim();
+          
+          const styles = {};
+          const styleDeclarations = styleText.split(';').filter(d => d.trim());
+          
+          styleDeclarations.forEach(declaration => {
+            const colonIndex = declaration.indexOf(':');
+            if (colonIndex > 0) {
+              const prop = declaration.substring(0, colonIndex).trim();
+              const value = declaration.substring(colonIndex + 1).trim().replace(/!important/g, '');
+              
+              if (prop && value) {
+                styles[prop] = value;
+              }
+            }
+          });
+          
+          if (Object.keys(styles).length > 0) {
+            rules.push({ selector, styles });
+          }
+        }
+      });
+    }
+  } catch (error) {
+    console.warn('Error parsing CSS rules:', error);
+  }
+  
+  return rules;
+};
+
 /* Build a single HTML/CSS string + metadata ready to POST */
 function buildTemplateBundle(editor, {
   targetWidth  = 1920,
@@ -91,6 +171,13 @@ function buildTemplateBundle(editor, {
     log('🔧 Raw HTML length:', html.length);
     log('🔧 Raw CSS length:', css.length);
     
+    // IMPORTANT: Bake CSS styles into HTML as inline styles for positioning preservation
+    if (html && css) {
+      log('🔧 Baking CSS styles into HTML for positioning preservation...');
+      html = bakeInlineStyles(html, css);
+      log('🔧 Processed HTML length after inline style baking:', html.length);
+    }
+    
     // Walk through all components and collect their styles
     const componentStylesArray = [];
     const componentAttributes = [];
@@ -164,13 +251,17 @@ function buildTemplateBundle(editor, {
       // Generate CSS for this component - use both component styles and element styles
       const allStyles = { ...componentStyles, ...elementStyles };
       if (allStyles && Object.keys(allStyles).length > 0) {
-        // Use class-based selectors instead of ID-based selectors for better compatibility
-        // This ensures the CSS works in the display even if IDs change
-        const selector = `[data-gjs-type="${componentType}"][id="${componentId}"]`;
-        const classSelector = `.gjs-block[data-placeholder]`; // More generic selector for text blocks
+        // Use specific ID-based selectors for complete component isolation
+        // This ensures each component's styles are completely independent
+        const idSelector = `[id="${componentId}"]`;
+        const spanSelector = `[id="${componentId}"] span`;
         
-        let componentCSS = `${selector} {\n`;
-        let classCSS = '';
+        let componentCSS = '';
+        
+        // Create specific CSS for the component element itself
+        let hasValidStyles = false;
+        let elementRules = `${idSelector} {\n`;
+        let spanRules = `${spanSelector} {\n`;
         
         Object.entries(allStyles).forEach(([prop, value]) => {
           // Skip animation properties - they should be HTML attributes, not CSS
@@ -181,19 +272,27 @@ function buildTemplateBundle(editor, {
           if (value !== undefined && value !== null && value !== '' && value !== 'auto' && value !== 'normal') {
             // Convert CSS property names from camelCase to kebab-case
             const cssProp = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
-            componentCSS += `  ${cssProp}: ${value};\n`;
             
-            // Track font sizes for global CSS
+            // Add to both element and span rules for maximum compatibility
+            elementRules += `  ${cssProp}: ${value} !important;\n`;
+            spanRules += `  ${cssProp}: ${value} !important;\n`;
+            hasValidStyles = true;
+            
+            // Track font sizes for individual component CSS
             if (cssProp === 'font-size') {
               fontSizes.set(componentId, value);
             }
           }
         });
         
-        componentCSS += `}\n`;
-        componentStylesArray.push(componentCSS);
-        
-        log(`🔧 Generated CSS for ${componentId}:`, componentCSS);
+        if (hasValidStyles) {
+          elementRules += `}\n`;
+          spanRules += `}\n`;
+          componentCSS = elementRules + spanRules;
+          componentStylesArray.push(componentCSS);
+          
+          log(`🔧 Generated isolated CSS for ${componentId}:`, componentCSS);
+        }
       }
       
       // Store component attributes for later processing
@@ -246,45 +345,40 @@ function buildTemplateBundle(editor, {
       log(`🔧 Added ${uniqueCSS.length} unique CSS rules (filtered from ${componentStylesArray.length} total)`);
     }
     
-    // Add global font-size rules for better display compatibility
-    // This ensures font sizes are applied even if specific selectors don't match
+    // Add individual component font-size rules (no global bleeding)
+    // Each component gets its own specific CSS rule to prevent style bleeding
     if (fontSizes.size > 0) {
-      const globalFontSizeCSS = `
-/* Global font-size rules for display compatibility - HIGH SPECIFICITY */
-body .gjs-block[data-placeholder] {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
-  color: white !important;
+      let individualFontCSS = '\n/* Individual component font-size rules */\n';
+      fontSizes.forEach((fontSize, componentId) => {
+        // Create component-specific CSS that doesn't affect other components
+        // Use multiple selectors for maximum compatibility and isolation
+        individualFontCSS += `
+/* Font styles for component ${componentId} */
+[id="${componentId}"] {
+  font-size: ${fontSize} !important;
 }
 
-body [data-placeholder] {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
+[id="${componentId}"] span {
+  font-size: ${fontSize} !important;
 }
 
-/* Ensure text blocks have proper font sizing */
-body span[data-placeholder] {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
+[id="${componentId}"][data-placeholder] {
+  font-size: ${fontSize} !important;
 }
 
-/* Fallback for any text elements with high specificity */
-body .gjs-block span {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
+/* Additional selectors for maximum component isolation */
+span[id="${componentId}"] {
+  font-size: ${fontSize} !important;
 }
 
-/* Override any layout component font sizes */
-body [data-gjs-type="default"] span,
-body [data-gjs-type="text"] span {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
-}
-
-/* Ensure placeholder text has correct font size */
-body [data-placeholder="name"],
-body [data-placeholder="message"] {
-  font-size: ${Array.from(fontSizes.values())[0]} !important;
+[data-block-type][id="${componentId}"] {
+  font-size: ${fontSize} !important;
 }
 `;
+      });
       
-      css += globalFontSizeCSS;
-      log(`🔧 Added global font-size CSS with size: ${Array.from(fontSizes.values())[0]}`);
+      css += individualFontCSS;
+      log(`🔧 Added individual font-size CSS for ${fontSizes.size} components`);
     }
     
     // Note: Animation data is now handled as HTML attributes, not CSS properties

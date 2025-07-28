@@ -334,7 +334,88 @@ export default function RunnerDisplayPage() {
   }, [currentDisplayState, runner, template, currentTemplateContent, displayDuration, lastRunnerTime]);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }}>
+    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000', position: 'relative' }}>
+      {/* Debug indicator - only visible in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          background: currentDisplayState === 'active' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)',
+          color: 'white',
+          padding: '5px 10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          zIndex: 9999,
+          fontFamily: 'monospace'
+        }}>
+          {currentDisplayState.toUpperCase()} | {runner ? `BIB: ${runner.bib}` : 'NO RUNNER'}
+        </div>
+      )}
+
+      {/* Test controls - only visible in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          zIndex: 9999,
+          fontFamily: 'monospace'
+        }}>
+          <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>TEST CONTROLS</div>
+          <button 
+            onClick={() => {
+              const testRunner = {
+                bib: '1234',
+                name: 'Test Runner',
+                first_name: 'Test',
+                last_name: 'Runner',
+                age: '25',
+                city: 'Test City',
+                state: 'TX'
+              };
+              console.log('[TEST] Simulating runner crossing timing mat');
+              switchToActiveState(testRunner);
+            }}
+            style={{
+              background: '#ff6b6b',
+              color: 'white',
+              border: 'none',
+              padding: '5px 10px',
+              borderRadius: '3px',
+              cursor: 'pointer',
+              marginRight: '5px',
+              fontSize: '11px'
+            }}
+          >
+            Test Active
+          </button>
+          <button 
+            onClick={() => {
+              console.log('[TEST] Manually switching to resting state');
+              switchToRestingState();
+            }}
+            style={{
+              background: '#51cf66',
+              color: 'white',
+              border: 'none',
+              padding: '5px 10px',
+              borderRadius: '3px',
+              cursor: 'pointer',
+              fontSize: '11px'
+            }}
+          >
+            Test Resting
+          </button>
+        </div>
+      )}
+      
       {currentTemplateContent ? (
         <RunnerDisplay 
           runner={runner} 
@@ -354,7 +435,7 @@ export default function RunnerDisplayPage() {
         }}>
           <h2>No Template Loaded</h2>
           <p>Please create or select a template in the builder first.</p>
-          <p>Current state: {currentDisplayState}</p>
+          <p>Current state: <span style={{color: currentDisplayState === 'active' ? '#ff6b6b' : '#51cf66'}}>{currentDisplayState}</span></p>
           <p>Template available: {template ? 'Yes' : 'No'}</p>
           {template && (
             <div>

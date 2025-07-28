@@ -24,6 +24,7 @@ from urllib.parse import urljoin, urlparse
 import logging
 from PIL import Image
 import atexit
+import socket
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -673,6 +674,13 @@ def calculate_hmac(seed, password, method='sha1'):
     return None
 
 class TimingHandler(socketserver.StreamRequestHandler):
+    def setup(self):
+        """Set up the connection with proper timeout"""
+        super().setup()
+        # Set socket timeout to prevent indefinite blocking
+        self.request.settimeout(PROTOCOL_CONFIG.get('TIMEOUT', 30))
+        print(f"Connection setup with {PROTOCOL_CONFIG.get('TIMEOUT', 30)}s timeout")
+
     def write_command(self, *fields):
         """Write a command to the socket with proper formatting"""
         try:
@@ -686,7 +694,7 @@ class TimingHandler(socketserver.StreamRequestHandler):
             raise
 
     def read_command(self):
-        """Read a command from the socket"""
+        """Read a command from the socket with timeout handling"""
         try:
             line = self.rfile.readline()
             if not line:
@@ -695,6 +703,13 @@ class TimingHandler(socketserver.StreamRequestHandler):
             if command:
                 print("<<", command)
             return command
+        except socket.timeout:
+            # Timeout is normal - client might be idle
+            print("Socket timeout - client idle, continuing to listen...")
+            return ""  # Return empty string to continue loop
+        except ConnectionResetError:
+            print("Client connection reset")
+            return None
         except Exception as e:
             print(f"Error reading command: {e}")
             return None
@@ -704,8 +719,11 @@ class TimingHandler(socketserver.StreamRequestHandler):
         logger.info(f"TCP Client connected from {self.client_address}")
         
         try:
-            # Consume the greeting
+            # Consume the greeting with timeout handling
             greeting = self.read_command()
+            if greeting is None:
+                print("Failed to receive greeting, disconnecting")
+                return
             print(f"Received greeting: {greeting}")
 
             # Send our response with settings
@@ -732,13 +750,27 @@ class TimingHandler(socketserver.StreamRequestHandler):
             # Start the data feed
             self.write_command("start")
 
-            # Process incoming data
+            # Process incoming data with improved connection handling
             connection_active = True
+            idle_count = 0
+            max_idle_cycles = 10  # Allow up to 10 timeout cycles before disconnecting
+            
             while connection_active:
                 line = self.read_command()
+                
                 if line is None:
-                    print("No data received, client may have disconnected")
+                    print("Client disconnected or error occurred")
                     break
+                
+                if line == "":  # Timeout occurred
+                    idle_count += 1
+                    if idle_count >= max_idle_cycles:
+                        print(f"Client idle for {max_idle_cycles} timeout cycles, disconnecting")
+                        break
+                    continue  # Continue listening
+                
+                # Reset idle count when we receive data
+                idle_count = 0
                 
                 if not line:
                     continue  # Skip empty lines
@@ -770,29 +802,93 @@ class TimingHandler(socketserver.StreamRequestHandler):
                     current_runner = processed_data  # Update current runner for API endpoint
                     data_queue.put(processed_data)
 
+        except socket.timeout:
+            print(f"Connection timeout after {PROTOCOL_CONFIG.get('TIMEOUT', 30)}s")
+        except ConnectionResetError:
+            print("Client forcibly closed the connection")
         except Exception as e:
             print(f"Error handling client connection: {e}")
+            import traceback
+            traceback.print_exc()
         finally:
             print(f"-- Client {self.client_address} disconnected --")
 
 def monitor_data_feed():
-    """Start the TCP server"""
-    print(f"Starting TCP server on {PROTOCOL_CONFIG['HOST']}:{PROTOCOL_CONFIG['PORT']}")
-    try:
-        server = socketserver.ThreadingTCPServer(
-            (PROTOCOL_CONFIG['HOST'], PROTOCOL_CONFIG['PORT']), 
-            TimingHandler
-        )
-        # Allow reuse of the address to prevent "Address already in use" errors
-        server.allow_reuse_address = True
-        server.socket.setsockopt(socketserver.socket.SOL_SOCKET, socketserver.socket.SO_REUSEADDR, 1)
-        
-        print(f"Server listening on port {PROTOCOL_CONFIG['PORT']}")
-        print("Waiting for ChronoTrack Live connections...")
-        server.serve_forever()
-    except Exception as e:
-        print(f"Error in TCP server: {e}")
-        raise
+    """Start the TCP server with automatic restart capability"""
+    max_retries = 5
+    retry_count = 0
+    retry_delay = 5  # seconds
+    
+    while retry_count < max_retries:
+        try:
+            print(f"Starting TCP server on {PROTOCOL_CONFIG['HOST']}:{PROTOCOL_CONFIG['PORT']} (attempt {retry_count + 1})")
+            
+            server = socketserver.ThreadingTCPServer(
+                (PROTOCOL_CONFIG['HOST'], PROTOCOL_CONFIG['PORT']), 
+                TimingHandler
+            )
+            
+            # Configure server for better reliability
+            server.allow_reuse_address = True
+            server.socket.setsockopt(socketserver.socket.SOL_SOCKET, socketserver.socket.SO_REUSEADDR, 1)
+            
+            # Set server timeout to prevent hanging
+            server.timeout = 1.0  # Check for shutdown every second
+            
+            print(f"✅ TCP Server listening on port {PROTOCOL_CONFIG['PORT']}")
+            print("🎯 Ready for ChronoTrack Live connections...")
+            
+            # Reset retry count on successful start
+            retry_count = 0
+            
+            # Serve with graceful shutdown handling
+            while True:
+                try:
+                    server.handle_request()
+                except KeyboardInterrupt:
+                    print("\n🛑 TCP Server shutdown requested")
+                    break
+                except Exception as e:
+                    print(f"⚠️ Error handling request: {e}")
+                    continue
+                    
+        except OSError as e:
+            if "Address already in use" in str(e):
+                print(f"❌ Port {PROTOCOL_CONFIG['PORT']} is in use")
+                retry_count += 1
+                if retry_count < max_retries:
+                    print(f"⏳ Waiting {retry_delay}s before retry...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    print(f"💥 Failed to start TCP server after {max_retries} attempts")
+                    raise
+            else:
+                print(f"❌ TCP Server error: {e}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    print(f"⏳ Restarting in {retry_delay}s...")
+                    time.sleep(retry_delay)
+                else:
+                    raise
+        except Exception as e:
+            print(f"💥 Unexpected TCP server error: {e}")
+            import traceback
+            traceback.print_exc()
+            retry_count += 1
+            if retry_count < max_retries:
+                print(f"🔄 Attempting restart in {retry_delay}s...")
+                time.sleep(retry_delay)
+            else:
+                print(f"💥 TCP Server failed after {max_retries} attempts")
+                raise
+        finally:
+            try:
+                if 'server' in locals():
+                    server.server_close()
+                    print("🧹 TCP Server cleaned up")
+            except:
+                pass
 
 def start_listeners():
     """Start TCP listener"""
@@ -2210,23 +2306,6 @@ def cleanup_templates():
         logger.error(f"Error during template cleanup: {e}")
         return jsonify({'error': f'Cleanup failed: {str(e)}'}), 500
 
-# ---------------------------------------------------------------------------
-# React Frontend Routes - These must come AFTER all API routes
-# ---------------------------------------------------------------------------
-
-@app.route('/')
-def serve_react_index():
-    dist_dir = os.path.join(app.root_path, 'frontend', 'dist')
-    return send_from_directory(dist_dir, 'index.html')
-
-@app.route('/<path:path>')
-def serve_react(path):
-    dist_dir = os.path.join(app.root_path, 'frontend', 'dist')
-    file_path = os.path.join(dist_dir, path)
-    if path != '' and os.path.exists(file_path):
-        return send_from_directory(dist_dir, path)
-    return send_from_directory(dist_dir, 'index.html')
-
 @app.route('/api/display-settings', methods=['GET', 'POST'])
 def manage_display_settings():
     """Get or update display settings"""
@@ -3162,6 +3241,74 @@ def manage_refresh_config():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/tcp-status')
+def get_tcp_status():
+    """Get TCP listener status and health information"""
+    try:
+        # Check if port is listening
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex((PROTOCOL_CONFIG['HOST'], PROTOCOL_CONFIG['PORT']))
+        sock.close()
+        
+        port_listening = result == 0
+        
+        return jsonify({
+            'success': True,
+            'tcp_listener': {
+                'host': PROTOCOL_CONFIG['HOST'],
+                'port': PROTOCOL_CONFIG['PORT'],
+                'listening': port_listening,
+                'timeout': PROTOCOL_CONFIG.get('TIMEOUT', 30)
+            },
+            'listeners_started': listeners_started,
+            'current_mode': current_mode,
+            'queue_size': len(runner_queue) if 'runner_queue' in globals() else 0,
+            'status': 'active' if port_listening else 'inactive'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'tcp_listener': {
+                'host': PROTOCOL_CONFIG['HOST'],
+                'port': PROTOCOL_CONFIG['PORT'],
+                'listening': False,
+                'timeout': PROTOCOL_CONFIG.get('TIMEOUT', 30)
+            },
+            'status': 'error'
+        })
+
+# ---------------------------------------------------------------------------
+# React Frontend Routes - These must come AFTER all API routes
+# ---------------------------------------------------------------------------
+
+@app.route('/')
+def serve_react_index():
+    """Serve the React frontend index.html"""
+    dist_dir = os.path.join(app.root_path, 'frontend', 'dist')
+    return send_from_directory(dist_dir, 'index.html')
+
+@app.route('/<path:path>')
+def serve_react(path):
+    """Serve React frontend assets and handle client-side routing"""
+    # Skip API routes to prevent conflicts
+    if path.startswith('api/'):
+        from flask import abort
+        abort(404)
+    
+    dist_dir = os.path.join(app.root_path, 'frontend', 'dist')
+    file_path = os.path.join(dist_dir, path)
+    
+    # If file exists, serve it (assets, JS, CSS)
+    if path != '' and os.path.exists(file_path):
+        return send_from_directory(dist_dir, path)
+    
+    # Otherwise, serve index.html for client-side routing
+    return send_from_directory(dist_dir, 'index.html')
 
 if __name__ == '__main__':
     import atexit

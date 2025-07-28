@@ -12,9 +12,17 @@ export default function TemplateViewer({ className, html, css, data, canvasWidth
   const substituteVariables = (htmlContent, runnerData) => {
     if (!htmlContent) return htmlContent;
     if (!runnerData) return htmlContent;
+    
+    console.log('[TemplateViewer] Variable substitution:', {
+      runnerData,
+      runnerDataKeys: Object.keys(runnerData),
+      htmlSnippet: htmlContent.substring(0, 200) + '...'
+    });
+    
     const variablePattern = /\{\{(\w+)\}\}/g;
     return htmlContent.replace(variablePattern, (match, variableName) => {
       const value = runnerData[variableName];
+      console.log(`[TemplateViewer] Substituting ${match} with:`, value);
       return value !== undefined ? value : match;
     });
   };
@@ -37,23 +45,60 @@ export default function TemplateViewer({ className, html, css, data, canvasWidth
     const templateCanvasHeight = template.canvasHeight || canvasHeight;
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
-    const scaleX = containerWidth / templateCanvasWidth;
-    const scaleY = containerHeight / templateCanvasHeight;
+    
+    // Check if the HTML contains inline styles (indicating new preservation method)
+    const hasInlineStyles = processedHtml && processedHtml.includes('style=');
+    
+    console.log('[TemplateViewer] HTML content analysis:', {
+      htmlLength: processedHtml?.length || 0,
+      hasInlineStyles,
+      templateCanvasWidth,
+      templateCanvasHeight,
+      containerWidth,
+      containerHeight,
+      htmlSample: processedHtml?.substring(0, 500) + '...'
+    });
+    
     let newScale = 1;
-    if (containerWidth < templateCanvasWidth) {
-      newScale = scaleX;
-    } else if (containerHeight < templateCanvasHeight) {
+    
+    if (hasInlineStyles) {
+      // For content with inline styles (new preservation method), use 1:1 scaling
+      // to preserve exact positioning and sizing
       newScale = 1;
+      console.log('[TemplateViewer] Using 1:1 scaling for inline-styled content');
     } else {
-      newScale = 1;
+      // For legacy content, use the original scaling logic
+      const scaleX = containerWidth / templateCanvasWidth;
+      const scaleY = containerHeight / templateCanvasHeight;
+      
+      if (containerWidth < templateCanvasWidth) {
+        newScale = scaleX;
+      } else if (containerHeight < templateCanvasHeight) {
+        newScale = 1;
+      } else {
+        newScale = 1;
+      }
+      console.log('[TemplateViewer] Using legacy scaling logic, scale:', newScale);
     }
+    
     const scaledWidth = templateCanvasWidth * newScale;
     const scaledHeight = templateCanvasHeight * newScale;
     const newX = (containerWidth - scaledWidth) / 2;
     const newY = (containerHeight - scaledHeight) / 2;
+    
+    console.log('[TemplateViewer] Scale calculation:', {
+      templateCanvasWidth,
+      templateCanvasHeight,
+      containerWidth,
+      containerHeight,
+      hasInlineStyles,
+      newScale,
+      position: { x: newX, y: newY }
+    });
+    
     setScale(newScale);
     setPosition({ x: newX, y: newY });
-  }, [template, canvasWidth, canvasHeight]);
+  }, [template, canvasWidth, canvasHeight, processedHtml]);
 
   // Handle resize events
   useEffect(() => {
@@ -64,16 +109,29 @@ export default function TemplateViewer({ className, html, css, data, canvasWidth
       const templateCanvasHeight = template.canvasHeight || canvasHeight;
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
-      const scaleX = containerWidth / templateCanvasWidth;
-      const scaleY = containerHeight / templateCanvasHeight;
+      
+      // Check if the HTML contains inline styles (indicating new preservation method)
+      const hasInlineStyles = processedHtml && processedHtml.includes('style=');
+      
       let newScale = 1;
-      if (containerWidth < templateCanvasWidth) {
-        newScale = scaleX;
-      } else if (containerHeight < templateCanvasHeight) {
+      
+      if (hasInlineStyles) {
+        // For content with inline styles (new preservation method), use 1:1 scaling
         newScale = 1;
       } else {
-        newScale = 1;
+        // For legacy content, use the original scaling logic
+        const scaleX = containerWidth / templateCanvasWidth;
+        const scaleY = containerHeight / templateCanvasHeight;
+        
+        if (containerWidth < templateCanvasWidth) {
+          newScale = scaleX;
+        } else if (containerHeight < templateCanvasHeight) {
+          newScale = 1;
+        } else {
+          newScale = 1;
+        }
       }
+      
       const scaledWidth = templateCanvasWidth * newScale;
       const scaledHeight = templateCanvasHeight * newScale;
       const newX = (containerWidth - scaledWidth) / 2;
@@ -83,7 +141,7 @@ export default function TemplateViewer({ className, html, css, data, canvasWidth
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [template, canvasWidth, canvasHeight]);
+  }, [template, canvasWidth, canvasHeight, processedHtml]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -137,18 +195,28 @@ export default function TemplateViewer({ className, html, css, data, canvasWidth
             node.style.fontSize = fontSize + 'px';
           }
           
-          // If still overflowing, add ellipsis
+          // If still overflowing after minimum font size, allow text to wrap naturally
+          // DON'T use ellipsis - let text scale and wrap as needed
           if (node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight) {
-            node.style.textOverflow = 'ellipsis';
-            node.style.overflow = 'hidden';
-            node.style.whiteSpace = 'nowrap';
+            console.log('[TemplateViewer] Text still overflowing at minimum font size, allowing natural wrap:', {
+              text: node.textContent?.substring(0, 50) + '...',
+              fontSize: fontSize,
+              scrollWidth: node.scrollWidth,
+              clientWidth: node.clientWidth
+            });
+            
+            // Allow text to wrap naturally instead of truncating
+            node.style.whiteSpace = 'normal';
+            node.style.wordWrap = 'break-word';
+            node.style.overflow = 'visible';
+            node.style.textOverflow = '';
           }
         } else {
-          // If not overflowing, ensure we use the original font size
+          // If not overflowing, ensure we use the original font size and clear any truncation
           node.style.fontSize = originalFontSize + 'px';
           node.style.textOverflow = '';
-          node.style.overflow = '';
-          node.style.whiteSpace = '';
+          node.style.overflow = 'visible';
+          node.style.whiteSpace = 'normal';
         }
       });
     }, 50);
